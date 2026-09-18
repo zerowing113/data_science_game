@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DemandHistory } from './DemandHistory';
+import { EvaluationLab } from './EvaluationLab';
 import { dayLabel, featureLine, scenario, starterCode, starterFeaturesAssignment, type FeatureChoice } from './scenario';
 import { usePython } from './use-python';
 
@@ -12,6 +13,7 @@ export default function App() {
   const [expectation, setExpectation] = useState('');
   const [submitted, setSubmitted] = useState<SubmittedRun>();
   const [previous, setPrevious] = useState<SuccessfulRun>();
+  const [evaluationOpen, setEvaluationOpen] = useState(false);
   const python = usePython();
   const busy = python.phase === 'loading' || python.phase === 'running';
   const dirty = submitted !== undefined && submitted.code !== code;
@@ -91,6 +93,7 @@ export default function App() {
               {previous.output && <details className="python-output"><summary>Saved output · run {previous.number}</summary><pre>{previous.output}</pre></details>}
             </details>}
           </section>
+          {evaluationOpen ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
         </div>
       </div>
       <footer><span>little goods · big questions</span><span>Your code runs in this browser. No Python installation needed.</span></footer>

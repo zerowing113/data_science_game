@@ -1,0 +1,12 @@
+.evaluation-lab { min-width: 0; }
+.evaluation-lab > p, .evaluation-record > p { font-size: 13px; color: #5a6c63; margin: 12px 0; }
+.evaluation-lab > label { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; margin: 16px 0; }
+.evaluation-lab select, .evaluation-lab input { padding: 9px; border: 1px solid #dce3d8; border-radius: 6px; color: #264530; background: #fff; font: inherit; max-width: 100%; }
+.evaluation-lab input { flex: 1; min-width: 180px; }
+.evaluation-lab h3 { font-size: 17px; margin-top: 24px; }
+.evaluation-lab [role="status"] { font-size: 12px; }
+.evaluation-record { border-top: 2px solid #dce3d8; margin-top: 24px; }
+.evaluation-record code { overflow-wrap: anywhere; }
+.evaluation-table-scroll { overflow-x: auto; }
+.evaluation-table-scroll table { min-width: 610px; }
+.evaluation-table-scroll th { vertical-align: top; }

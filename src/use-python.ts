@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PythonMessage, RunRequest } from './python-types';
+import type { PythonMessage, PythonResult, RunRequest } from './python-types';
 
 type PythonState = {
   phase: 'loading' | 'ready' | 'running' | 'complete' | 'error' | 'unavailable';
   message: string;
-  result?: { predictions: number[]; output: string };
+  result?: PythonResult;
 };
 
 export function usePython() {

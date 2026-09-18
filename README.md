@@ -4,11 +4,17 @@ The first playable slice of an e-commerce game for learning model building. Buil
 
 Choose **Trend only** or **Trend + promotions**, write what you expect, edit the Python starter, and run a real seven-day demand forecast. The shop brief, history chart, predicted daily values, and saved pre-run expectation connect the code to a business question.
 
-Implements [issue #1](https://github.com/zerowing113/data_science_game/issues/1), [demand exploration #2](https://github.com/zerowing113/data_science_game/issues/2), and [Python recovery #4](https://github.com/zerowing113/data_science_game/issues/4). Baseline comparisons, inventory decisions, leakage lessons, full mission progression, and private hosting belong to later issues.
+Implements [issue #1](https://github.com/zerowing113/data_science_game/issues/1), [demand exploration #2](https://github.com/zerowing113/data_science_game/issues/2), [baseline comparison #3](https://github.com/zerowing113/data_science_game/issues/3), and [Python recovery #4](https://github.com/zerowing113/data_science_game/issues/4). Inventory decisions, leakage lessons, full mission progression, and private hosting belong to later issues.
 
 Explore historical observations and upcoming inputs before modeling. The inspect-only viewer explains the columns and when their values become known; selecting a row or chart point connects the records with demand patterns. Upcoming demand is not presented as an observed outcome. Sorting changes only the view, not the Python inputs.
 
 If code fails, edit it and rerun. Use **Stop run** for unfinished execution and **Reset Python** to start a fresh interpreter without reloading the page. Reset preserves your code and expectation. The last successful forecast remains inspectable as a previous run with its original code and expectation; it is never presented as the output of a failed or stopped run. This record lasts only for the current page session.
+
+Open the **evaluation lab** to test on later historical days before trusting an upcoming forecast. Choose 21 training / 7 evaluation days or 14 training / 14 evaluation days. The baseline repeats the last training day's demand. Baseline and model MAE use the same held-out rows, with actual demand, predictions, and absolute errors displayed for each date. Saved evaluations retain code, feature choice, reported fitted features and model configuration, split, expectation, and scores for the current page session. Compare scores only for runs using the same evaluation dates.
+
+Evaluation starts its own worker only when the lab is opened, keeping upcoming-week forecasts separate from historical holdouts. Its Python receives only training observations and held-out input features, without evaluation demand. Return a pandas Series indexed by `future.index`; the worker verifies prediction count, finite non-negative values, and exact date alignment before scoring. This catches accidental invalid outputs and row mismatches; arbitrary learner code is not an anti-cheating sandbox. The fixture's historical answers are already visible in exploration.
+
+For the 21/7 split, the last observed demand is 60 mugs and baseline absolute errors sum to 80, giving MAE 11.43. The trend-only linear model scores 5.62, while adding promotions scores 0.00 on this noise-free teaching fixture. The lab neither evaluates nor reveals actual demand for September 28–October 4.
 
 ## Start locally
 
@@ -44,9 +50,10 @@ Browser tests use actual Python execution and the visible learner interface, wit
 - React 19.3, TypeScript 5.9, Vite 6.4 (compatible with the project's Node version).
 - Pyodide 0.28.3 with Python 3.13.2; pandas 2.3.1, scikit-learn 1.7.0, NumPy 2.2.5 and SciPy 1.14.1 from its compatible package lock.
 - Python runs in a dedicated web worker so model training does not block the page. Each run gets fresh pandas tables and a fresh Python namespace; modules remain cached in the interpreter.
-- The editable script receives `history` and `future` pandas DataFrames and must produce `predictions`: seven finite, non-negative numbers in future-date order. Worker validation rejects absent, malformed, negative, and non-finite results.
+- The upcoming-week script receives `history` and `future` pandas DataFrames and must produce `predictions`: seven finite, non-negative numbers in future-date order. Evaluation uses the date-indexed Series contract described above for its seven or fourteen held-out days. Worker validation rejects absent, malformed, negative, and non-finite results.
 - The feature choice updates the supported one-line starter `features` assignment without replacing the rest of the learner's edits. Custom assignments (including multiline Python) are preserved with explicit guidance; the starter can be restored to reconnect the visual choice. Code edits mark existing results as stale; failed runs do not present a prior forecast as current output.
 - Runtime loading, training, success, and readable errors are visible. Initialization and execution have time limits. Stop terminates the worker; reset starts a fresh interpreter. Messages from an old worker cannot change the active session, and a timed-out runtime can be reset in place.
+- Startup checks that the core packages installed, retries missing core downloads once, and imports pandas and the starter estimator before announcing readiness. Incomplete package loading remains a recoverable startup error rather than appearing as a learner-code failure.
 - The editor intentionally uses a labeled native textarea so keyboard and assistive-technology behavior remain familiar. Charts have text alternatives and a daily forecast table.
 
 Reference: Pyodide's [web worker guide](https://pyodide.org/en/0.28.3/usage/webworker.html) and [bundler guidance](https://pyodide.org/en/0.28.3/usage/working-with-bundlers.html).
