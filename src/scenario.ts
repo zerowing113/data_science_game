@@ -1,5 +1,9 @@
 export type DemandDay = { day: number; date: string; promotion: number; demand: number };
 
+export function simulatedDemand(day: number, promotion: number) {
+  return 20 + 2 * day + 12 * promotion;
+}
+
 // Deliberately simple, noise-free teaching fixture: the learner can see what a
 // fitted feature does before later missions introduce messy observations.
 const observations: DemandDay[] = Array.from({ length: 28 }, (_, day) => {
@@ -8,7 +12,7 @@ const observations: DemandDay[] = Array.from({ length: 28 }, (_, day) => {
     day,
     date: new Date(Date.UTC(2026, 7, 31 + day)).toISOString().slice(0, 10),
     promotion,
-    demand: 20 + 2 * day + 12 * promotion,
+    demand: simulatedDemand(day, promotion),
   };
 });
 

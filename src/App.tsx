@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { DemandHistory } from './DemandHistory';
 import { EvaluationLab } from './EvaluationLab';
+import { StockingDesk } from './StockingDesk';
+import type { ForecastExperiment } from './shop';
 import { dayLabel, featureLine, scenario, starterCode, starterFeaturesAssignment, type FeatureChoice } from './scenario';
 import { usePython } from './use-python';
 
 type SubmittedRun = { number: number; code: string; expectation: string; choice: FeatureChoice };
-type SuccessfulRun = SubmittedRun & { predictions: number[]; output: string };
 
 export default function App() {
   const [choice, setChoice] = useState<FeatureChoice>('trend');
   const [code, setCode] = useState(starterCode('trend'));
   const [expectation, setExpectation] = useState('');
   const [submitted, setSubmitted] = useState<SubmittedRun>();
-  const [previous, setPrevious] = useState<SuccessfulRun>();
+  const [previous, setPrevious] = useState<ForecastExperiment>();
   const [evaluationOpen, setEvaluationOpen] = useState(false);
   const python = usePython();
   const busy = python.phase === 'loading' || python.phase === 'running';
@@ -93,6 +94,7 @@ export default function App() {
               {previous.output && <details className="python-output"><summary>Saved output · run {previous.number}</summary><pre>{previous.output}</pre></details>}
             </details>}
           </section>
+          <StockingDesk forecast={previous} />
           {evaluationOpen ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
         </div>
       </div>

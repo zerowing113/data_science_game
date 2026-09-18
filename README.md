@@ -4,7 +4,7 @@ The first playable slice of an e-commerce game for learning model building. Buil
 
 Choose **Trend only** or **Trend + promotions**, write what you expect, edit the Python starter, and run a real seven-day demand forecast. The shop brief, history chart, predicted daily values, and saved pre-run expectation connect the code to a business question.
 
-Implements [issue #1](https://github.com/zerowing113/data_science_game/issues/1), [demand exploration #2](https://github.com/zerowing113/data_science_game/issues/2), [baseline comparison #3](https://github.com/zerowing113/data_science_game/issues/3), and [Python recovery #4](https://github.com/zerowing113/data_science_game/issues/4). Inventory decisions, leakage lessons, full mission progression, and private hosting belong to later issues.
+Implements [issue #1](https://github.com/zerowing113/data_science_game/issues/1), [demand exploration #2](https://github.com/zerowing113/data_science_game/issues/2), [baseline comparison #3](https://github.com/zerowing113/data_science_game/issues/3), [Python recovery #4](https://github.com/zerowing113/data_science_game/issues/4), and [stocking decisions #7](https://github.com/zerowing113/data_science_game/issues/7). Missing-data and leakage lessons, full mission progression, and private hosting belong to later issues.
 
 Explore historical observations and upcoming inputs before modeling. The inspect-only viewer explains the columns and when their values become known; selecting a row or chart point connects the records with demand patterns. Upcoming demand is not presented as an observed outcome. Sorting changes only the view, not the Python inputs.
 
@@ -15,6 +15,14 @@ Open the **evaluation lab** to test on later historical days before trusting an 
 Evaluation starts its own worker only when the lab is opened, keeping upcoming-week forecasts separate from historical holdouts. Its Python receives only training observations and held-out input features, without evaluation demand. Return a pandas Series indexed by `future.index`; the worker verifies prediction count, finite non-negative values, and exact date alignment before scoring. This catches accidental invalid outputs and row mismatches; arbitrary learner code is not an anti-cheating sandbox. The fixture's historical answers are already visible in exploration.
 
 For the 21/7 split, the last observed demand is 60 mugs and baseline absolute errors sum to 80, giving MAE 11.43. The trend-only linear model scores 5.62, while adding promotions scores 0.00 on this noise-free teaching fixture. The lab neither evaluates nor reveals actual demand for September 28–October 4.
+
+Use **Stock the shop** to select a completed upcoming-week forecast and choose seven daily orders. Suggestions round its predictions to the nearest whole mug; blank, fractional, negative, or above-capacity quantities cannot be committed. Each day has a 10,000-mug capacity. Selecting a newer forecast explicitly replaces the draft; code edits, failed runs, and runtime resets do not silently replace its source.
+
+Commit all quantities before advancing the shop. Orders arrive before each day's demand: sale price is $12, purchase cost is $5 for every stocked mug, and unsold mugs are cleared for $1 each at day's end. Inventory and lost demand do not carry over. Profit is sales revenue plus leftover recovery minus purchase cost; fixed costs, taxes, and extra lost-sale fees are excluded. Calculations use integer cents. Profit is business feedback, not proof of forecast quality or mission completion.
+
+Advancing reveals daily demand, fulfilled orders, lost sales, leftovers, and profit in matching bars and tables. Each saved decision retains its source forecast run, predictions, code, choice, and expectation for comparison and later recap. Records last for the page session. Further decisions replay the same revealed week; they are explicitly not unseen forecast tests. The data explorer retains the original forecast-time inputs, and Python never receives the future demand answers through its scenario tables.
+
+The fixed shop week has demand `[76, 78, 80, 82, 96, 98, 88]` (598 mugs). Exact stock earns $4,186; 60 per day fulfills 420 mugs, loses 178, and earns $2,940; 100 per day leaves 102 mugs and earns $3,778 after leftover recovery.
 
 ## Start locally
 

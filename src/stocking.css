@@ -1,0 +1,18 @@
+.stocking-desk { min-width: 0; }
+.stocking-desk p { font-size: 13px; color: #5a6c63; margin: 12px 0; }
+.stocking-desk h3 { font-size: 16px; margin: 16px 0 8px; }
+.stocking-rules { background: #f4f7e9; padding: 5px 16px; border-radius: 8px; margin-bottom: 18px; }
+.stock-table-scroll { overflow-x: auto; }
+.stock-table-scroll table { min-width: 410px; }
+.stock-outcome .stock-table-scroll table { min-width: 650px; }
+.stock-plan input { width: 100px; padding: 7px; border: 1px solid #b9c6b1; border-radius: 6px; font: inherit; color: #264530; }
+.stock-outcome { border-top: 2px solid #dce3d8; margin-top: 24px; padding-top: 4px; }
+.stock-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; font-size: 13px; }
+.stock-totals strong { padding: 12px; background: #f4f7e9; border-radius: 6px; }
+.stock-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; margin: 18px 0 10px; }
+.stock-day { display: grid; grid-template-columns: 85px 1fr; gap: 5px 12px; align-items: center; font-size: 11px; margin: 9px 0; }
+.stock-day > span:last-child { grid-column: 2; color: #5a6c63; }
+.stock-bar { display: flex; height: 15px; background: #edf0e7; border-radius: 3px; overflow: hidden; }
+.stock-bar .fulfilled { background: #36775b; }
+.stock-bar .lost { background: #cc7d28; }
+.stock-bar .leftover { background: #9274af; }
