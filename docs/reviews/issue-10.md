@@ -20,9 +20,13 @@ Production build and TypeScript checking pass. The packager validates Python dep
 
 The full 30-test browser suite passed against the extracted Windows executable with external networking blocked by the packaged test configuration (7.5 minutes). The dedicated offline smoke test and three launcher tests also passed. Playwright discovery is now explicitly limited to `*.spec.ts` so the separate Node launcher tests are not executed incidentally during collection; `--list` confirms all 30 browser tests remain included. The standards reviewer verified the focus and discovery fixes with no remaining findings.
 
-Native CI run: https://github.com/zerowing113/data_science_game/actions/runs/35371332982 (final result recorded after completion).
+Initial native CI run: https://github.com/zerowing113/data_science_game/actions/runs/35371332982.
 
 The first native Windows CI run passed launcher/offline checks and eight journey tests, but one recovery test stopped waiting for startup after 60 seconds. Its trace shows all runtime requests returned HTTP 200 and package installation completed; imports were still in progress. The app already allows 120 seconds for startup. Recovery assertions now allow that existing window plus a small observation margin, with a test budget for two sessions. All three focused recovery tests pass locally after this test-only adjustment. No production timeout was increased.
+
+Apple Silicon passed the first native run. Intel Mac passed seven journey tests; the multi-fixture challenge and complete practice tests hit their aggregate 120-second test budget while still progressing (the practice trace had reached the leakage repair). Packaged journeys now allow ten minutes overall for multiple Python sessions; per-operation limits remain intact. The intermediate run was cancelled in favor of verification at the corrected test budgets: https://github.com/zerowing113/data_science_game/actions/runs/35372921547.
+
+Final native result: all three jobs passed at `28b4d4b` on Windows x64, Intel macOS, and Apple Silicon macOS. Each built and extracted its own ZIP, verified manifests, passed all three launcher tests, passed the fresh-browser offline real-Python smoke test, and passed nine guided-mission/challenge/recovery tests. The CI-built archives were downloaded and their SHA-256 files and clean revision manifests were verified before publishing the unsigned `offline-v0.1.0-preview.1` prerelease. The owner explicitly selected an unsigned first test release.
 
 ## Release boundary
 
