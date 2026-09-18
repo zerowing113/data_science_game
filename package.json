@@ -9,6 +9,9 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "prepare:python": "node scripts/prepare-python.mjs",
+    "package:offline": "python scripts/package-offline.py",
+    "test:launcher": "node --test tests/launcher.test.mjs",
+    "test:offline": "playwright test -c playwright.offline.config.ts",
     "test": "playwright test",
     "test:forecast": "playwright test tests/forecast.spec.ts"
   },

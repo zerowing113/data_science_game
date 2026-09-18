@@ -61,7 +61,7 @@ npm run build
 npm run preview
 ```
 
-Run `prepare:python` before development, tests, or building a fresh checkout. The production build includes the prepared runtime under `dist/python`. This is a local application build, not a deployed private website. Access-controlled deployment is issue #10.
+Run `prepare:python` before development, tests, or building a fresh checkout. The production build includes the prepared runtime under `dist/python`. Ticket #10 now packages this game for offline browser play on Windows and macOS. See the [player guide](docs/offline-player-guide.md) and [build/verification procedure](docs/offline-build.md). The unsigned test edition does not yet save progress; that is ticket #12.
 
 Browser tests use actual Python execution and the visible learner interface, with no canned forecast response or mocked model. Chromium is the tested browser. The supported fixture has 28 observed days starting August 31, 2026 and seven future dates, September 28–October 4. The exact underlying relationship is `20 + 2 * day + 12 * promotion`; this noise-free fixture teaches feature effects and is not intended to represent realistic forecast accuracy. For the two-feature model, September 28 predicts 76 mugs and the October 2 promotion predicts 96 mugs.
 

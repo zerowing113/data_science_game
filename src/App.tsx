@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { MissionProvider, useMission, usePracticeAttempt, practiceSteps } from './mission';
 import { MissionGuide } from './MissionGuide';
 import { FinalChallenge } from './FinalChallenge';
+import { OfflineSession } from './OfflineSession';
 import { DemandHistory } from './DemandHistory';
 import { EvaluationLab } from './EvaluationLab';
 import { MissingDataLesson } from './MissingDataLesson';
@@ -13,7 +14,7 @@ import { usePython } from './use-python';
 
 type SubmittedRun = { number: number; code: string; expectation: string; choice: FeatureChoice };
 
-export default function App() { return <MissionProvider><Workspace /></MissionProvider>; }
+export default function App() { return <OfflineSession><MissionProvider><Workspace /></MissionProvider></OfflineSession>; }
 
 function Workspace() {
   const mission = useMission();

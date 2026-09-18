@@ -1,6 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-
 :root { font-family: 'DM Sans', system-ui, sans-serif; color: #203c34; background: #f5f6f1; font-synthesis: none; line-height: 1.5; font-weight: 400; }
+.offline-banner { padding: 12px 5%; background: #f0f3dc; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.offline-banner [role="alertdialog"] { flex-basis: 100%; padding: 12px; border: 1px solid #8a9a77; }
+.offline-banner [role="alertdialog"] button { margin: 4px 12px 4px 0; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 button, input, textarea { font: inherit; }
