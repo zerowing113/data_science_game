@@ -1,0 +1,11 @@
+.missing-data-lesson { min-width: 0; }
+.missing-data-lesson > label { display: grid; gap: 8px; margin: 20px 0; font-weight: 650; }
+.missing-data-lesson select { padding: 10px; font: inherit; max-width: 100%; }
+.missing-data-lesson input { min-width: 0; }
+.missing-data-lesson p, .missing-record code { overflow-wrap: anywhere; }
+.missing-table-scroll { overflow-x: auto; margin: 18px 0; }
+.missing-table-scroll table { min-width: 550px; }
+.missing-record { border-top: 1px solid #dce2de; margin-top: 24px; padding-top: 16px; min-width: 0; }
+.missing-error { white-space: pre-wrap; overflow-wrap: anywhere; background: #fff2ea; padding: 14px; font-size: 12px; }
+.missing-explanation { margin: 20px 0; padding: 16px; background: #edf3ef; }
+.missing-explanation summary { cursor: pointer; font-weight: 650; }

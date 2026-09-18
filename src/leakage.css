@@ -1,0 +1,12 @@
+.leakage-lesson { min-width: 0; }
+.leakage-lesson > label { display: block; margin: 18px 0; }
+.leakage-lesson > label input { width: 100%; box-sizing: border-box; }
+.timing-inspection { background: #f4f1e9; border-radius: 12px; padding: 16px; margin: 18px 0; }
+.timing-inspection summary { cursor: pointer; font-weight: 700; }
+.timing-record { margin-top: 24px; border-top: 1px solid #dedbd1; padding-top: 16px; }
+.timing-record code { overflow-wrap: anywhere; }
+.timing-scroll { overflow-x: auto; }
+.timing-scroll table { min-width: 500px; }
+.timing-validity { padding: 12px; background: #eee9df; border-radius: 8px; }
+.timing-validity.leaked { background: #fff0dc; }
+.timing-validity.valid { background: #e4f0e7; }

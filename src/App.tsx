@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { DemandHistory } from './DemandHistory';
 import { EvaluationLab } from './EvaluationLab';
+import { MissingDataLesson } from './MissingDataLesson';
+import { LeakageLesson } from './LeakageLesson';
 import { StockingDesk } from './StockingDesk';
 import type { ForecastExperiment } from './shop';
 import { dayLabel, featureLine, scenario, starterCode, starterFeaturesAssignment, type FeatureChoice } from './scenario';
@@ -15,6 +17,8 @@ export default function App() {
   const [submitted, setSubmitted] = useState<SubmittedRun>();
   const [previous, setPrevious] = useState<ForecastExperiment>();
   const [evaluationOpen, setEvaluationOpen] = useState(false);
+  const [missingDataOpen, setMissingDataOpen] = useState(false);
+  const [leakageOpen, setLeakageOpen] = useState(false);
   const python = usePython();
   const busy = python.phase === 'loading' || python.phase === 'running';
   const dirty = submitted !== undefined && submitted.code !== code;
@@ -96,6 +100,8 @@ export default function App() {
           </section>
           <StockingDesk forecast={previous} />
           {evaluationOpen ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
+          {missingDataOpen ? <MissingDataLesson /> : <section className="results-card"><h2>What if the data is incomplete?</h2><p>Inspect missing values, try a preparation choice, and compare the evidence from your runs.</p><button className="run-button" onClick={() => setMissingDataOpen(true)}>Open missing-data lesson</button></section>}
+          {leakageOpen ? <LeakageLesson /> : <section className="results-card"><h2>Can you use that feature in time?</h2><p>Investigate an impressive historical result and test whether its inputs support a real forecast.</p><button className="run-button" onClick={() => setLeakageOpen(true)}>Open leakage lesson</button></section>}
         </div>
       </div>
       <footer><span>little goods · big questions</span><span>Your code runs in this browser. No Python installation needed.</span></footer>

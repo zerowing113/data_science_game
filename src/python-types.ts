@@ -1,13 +1,18 @@
-import type { scenario } from './scenario';
+export type PythonScenario = {
+  history: Record<string, string | number | null>[];
+  future: Record<string, string | number | null>[];
+};
 
 export type RunRequest = {
   id: number;
   code: string;
-  scenario: typeof scenario;
+  scenario: PythonScenario;
   evaluationDates?: string[];
+  leakageCheck?: { forecast: PythonScenario; approvedPrograms: string[] };
 };
 
-export type PythonResult = { predictions: number[]; output: string; features?: string; modelConfiguration?: string };
+export type LeakageCheck = { validity: 'valid' | 'leaked' | 'unverified'; reason: string; forecastPredictions?: number[]; forecastError?: string };
+export type PythonResult = { predictions: number[]; output: string; features?: string; modelConfiguration?: string; leakageCheck?: LeakageCheck };
 
 export type PythonMessage =
   | { type: 'loading'; message: string }
