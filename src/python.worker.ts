@@ -5,6 +5,15 @@ const send = (message: PythonMessage) => self.postMessage(message);
 let python: PyodideInterface;
 let output = '';
 
+async function matchesApprovedProgram(code: string, programs: string[]) {
+  const globals = python.toPy({ submitted_code: code, approved_json: JSON.stringify(programs) });
+  try {
+    return Boolean(await python.runPythonAsync(`import ast, json
+submitted_tree = ast.dump(ast.parse(submitted_code))
+any(submitted_tree == ast.dump(ast.parse(program)) for program in json.loads(approved_json))`, { globals }));
+  } finally { globals.destroy(); }
+}
+
 // Both runs use request-owned dates/counts, never mutable learner tables.
 async function readPredictions(globals: ReturnType<PyodideInterface['toPy']>, expectedCount: number, expectedDates?: string[]) {
   const encoded = await python.runPythonAsync(`import json as _result_json
@@ -91,9 +100,8 @@ future = pd.DataFrame(_scenario["future"])
       // or user-written metadata cannot certify how predictions were produced.
       const checkGlobals = python.toPy({ submitted_code: data.code, approved_json: JSON.stringify(data.leakageCheck.approvedPrograms), scenario_json: JSON.stringify(data.leakageCheck.forecast) });
       try {
-        const supported = await python.runPythonAsync(`import ast, json
-submitted_tree = ast.dump(ast.parse(submitted_code))
-any(submitted_tree == ast.dump(ast.parse(program)) for program in json.loads(approved_json))`, { globals: checkGlobals });
+        const supported = await matchesApprovedProgram(data.code, data.leakageCheck.approvedPrograms);
+        await python.runPythonAsync('import json', { globals: checkGlobals });
         const usesLateFeature = supported && metadata.features?.includes('closing_requested_units');
         leakageCheck = { validity: usesLateFeature ? 'leaked' : 'unverified', reason: usesLateFeature ? 'This supported model uses a closing report unavailable before the forecast.' : 'Custom Python is unverified. Only the supported LinearRegression recipe can certify feature timing; inspect saved code and results.' };
         output = '';
@@ -121,7 +129,8 @@ future.index = pd.Index(future["date"], name="evaluation_date")`, { globals: che
         checkGlobals.destroy();
       }
     }
-    send({ type: 'result', id: data.id, predictions, output: historicalOutput, ...metadata, ...(leakageCheck ? { leakageCheck } : {}) });
+    const programValidity = data.approvedPrograms ? (await matchesApprovedProgram(data.code, data.approvedPrograms) ? 'valid' : 'unverified') : undefined;
+    send({ type: 'result', id: data.id, predictions, output: historicalOutput, ...metadata, ...(leakageCheck ? { leakageCheck } : {}), programValidity });
   } catch (error) {
     send({ type: 'error', id: data.id, message: String(error) });
   } finally {

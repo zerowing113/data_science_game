@@ -7,14 +7,18 @@ export type ForecastExperiment = {
 
 export const shopRules = Object.freeze({ saleCents: 1200, purchaseCents: 500, salvageCents: 100, dailyCapacity: 10_000 });
 
-export function validStock(stock: number[]) {
-  return stock.length === scenario.future.length && stock.every((value) => Number.isSafeInteger(value) && value >= 0 && value <= shopRules.dailyCapacity);
+export function validStock(stock: number[], expectedDays = scenario.future.length) {
+  return stock.length === expectedDays && stock.every((value) => Number.isSafeInteger(value) && value >= 0 && value <= shopRules.dailyCapacity);
 }
 
 export function advanceShop(stock: number[]) {
-  if (!validStock(stock)) throw new Error(`Choose a whole stock quantity from 0 to ${shopRules.dailyCapacity.toLocaleString('en-US')} for each day.`);
-  const rows = scenario.future.map((day, index) => {
-    const demand = simulatedDemand(day.day, day.promotion);
+  return simulateShop(stock, scenario.future.map((day) => ({ date: day.date, demand: simulatedDemand(day.day, day.promotion) })));
+}
+
+export function simulateShop(stock: number[], days: { date: string; demand: number }[]) {
+  if (!validStock(stock, days.length)) throw new Error(`Choose a whole stock quantity from 0 to ${shopRules.dailyCapacity.toLocaleString('en-US')} for each day.`);
+  const rows = days.map((day, index) => {
+    const demand = day.demand;
     const fulfilled = Math.min(stock[index], demand);
     const lost = demand - fulfilled;
     const leftover = stock[index] - fulfilled;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MissionProvider, useMission, usePracticeAttempt, practiceSteps } from './mission';
 import { MissionGuide } from './MissionGuide';
+import { FinalChallenge } from './FinalChallenge';
 import { DemandHistory } from './DemandHistory';
 import { EvaluationLab } from './EvaluationLab';
 import { MissingDataLesson } from './MissingDataLesson';
@@ -16,7 +17,10 @@ export default function App() { return <MissionProvider><Workspace /></MissionPr
 
 function Workspace() {
   const mission = useMission();
-  const visible = (step: string) => !mission.state.active || mission.step === step;
+  const [finalOpen, setFinalOpen] = useState(false);
+  const [finalStarted, setFinalStarted] = useState(false);
+  const openFinal = () => { setFinalStarted(true); setFinalOpen(true); };
+  const visible = (step: string) => !finalOpen && (!mission.state.active || mission.step === step);
   const reached = (step: typeof practiceSteps[number]) => practiceSteps.indexOf(step) <= Object.keys(mission.state.evidence).length;
   const [choice, setChoice] = useState<FeatureChoice>('trend');
   const [code, setCode] = useState(starterCode('trend'));
@@ -54,8 +58,9 @@ function Workspace() {
     </header>
     <main id="main">
       <div className="page-heading"><div><span className="eyebrow">YOU'RE THE SHOP'S NEW ANALYST</span><h1>Your first forecast</h1><p>A small shop. A growing demand. What will next week look like?</p></div><div className="mission-tag"><span>MISSION 01</span><strong>Predict daily demand</strong></div></div>
-      <MissionGuide />
-      <div className="workspace">
+      <div hidden={finalOpen}><MissionGuide onOpenFinal={openFinal} /></div>
+      {finalStarted && <div hidden={!finalOpen}><FinalChallenge onBack={() => setFinalOpen(false)} /></div>}
+      <div className="workspace" hidden={finalOpen}>
         <aside className="shop-column">
           <section className="shop-card" aria-labelledby="shop-title">
             <div className="shop-card-top"><span className="eyebrow">YOUR SHOP</span><span className="open-tag">OPEN FOR BUSINESS</span></div>

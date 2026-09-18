@@ -132,6 +132,11 @@ test('the complete practice journey fades scaffolding and preserves inspected ev
   await expect(guide).toContainText('6 of 6 steps inspected');
   await expect(guide).toContainText('Practice journey complete');
   await expect(guide).toContainText('does not award a final win');
+  await guide.getByRole('button', { name: 'Open final challenge', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Final challenge', exact: true })).toBeVisible();
+  await expect(guide).toBeHidden();
+  await page.getByRole('button', { name: 'Back to practice', exact: true }).click();
+  await expect(guide).toContainText('6 of 6 steps inspected');
   await guide.getByRole('button', { name: 'Review step 4: Repair', exact: true }).click();
   await expect(missingEditor).toHaveValue(repaired);
   await expect(missing.getByRole('article')).toHaveCount(3);

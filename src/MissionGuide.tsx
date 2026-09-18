@@ -22,7 +22,7 @@ function evidenceLabel(evidence: PracticeEvidence) {
   }
 }
 
-export function MissionGuide() {
+export function MissionGuide({ onOpenFinal }: { onOpenFinal: () => void }) {
   const { state, step, dispatch } = useMission();
   const heading = useRef<HTMLHeadingElement>(null);
   const completed = practiceSteps.filter((item) => state.evidence[item]).length;
@@ -30,7 +30,7 @@ export function MissionGuide() {
   useEffect(() => {
     if (state.active) { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'start' }); }
   }, [state.active, state.current]);
-  if (!state.active) return <section className="mission-guide" aria-label="Practice mission"><h2>One question, six steps</h2><p>Follow a guided practice journey from exploring demand to stocking the shop. Start with working Python, then write more of the repairs yourself. Progress and experiments stay in this page until reload.</p><button className="run-button" onClick={() => dispatch({ type: 'start' })}>{completed ? 'Resume guided practice' : 'Start guided practice'}</button><p>Or use the workspaces below for free practice.</p></section>;
+  if (!state.active) return <section className="mission-guide" aria-label="Practice mission"><h2>One question, six steps</h2><p>Follow a guided practice journey from exploring demand to stocking the shop. Start with working Python, then write more of the repairs yourself. Progress and experiments stay in this page until reload.</p><button className="run-button" onClick={() => dispatch({ type: 'start' })}>{completed ? 'Resume guided practice' : 'Start guided practice'}</button><p>Or use the workspaces below for free practice. Ready to apply your learning?</p><button className="secondary-button" onClick={onOpenFinal}>Open final challenge</button></section>;
   return <section className="mission-guide" aria-label="Practice mission">
     <span className="eyebrow">GUIDED PRACTICE</span><h2 ref={heading} tabIndex={-1}>Step {state.current + 1} of 6: {steps[step].title}</h2>
     <p>{steps[step].objective}</p><p><strong>{completed} of 6 steps inspected</strong>. Progress records your actions and results, not proof of understanding.</p>
@@ -38,7 +38,7 @@ export function MissionGuide() {
     <nav aria-label="Practice steps">{practiceSteps.map((item, index) => <button key={item} aria-label={`Review step ${index + 1}: ${steps[item].title}`} aria-current={item === step ? 'step' : undefined} disabled={index > completed} onClick={() => dispatch({ type: 'visit', index })}>Review step {index + 1}: {steps[item].title}{state.evidence[item] ? ' ✓' : ''}</button>)}</nav>
     {state.evidence[step] && <p className="mission-evidence">Inspected evidence: {evidenceLabel(state.evidence[step])}. Saved work stays available when you revisit a step.</p>}
     <div className="mission-hints"><p>Optional help · Hints viewed: {hints} of 3</p>{!state.observed[step] && <p>{step === 'explore' ? 'Inspect the data to unlock hints.' : 'Run an experiment first to unlock hints.'}</p>}{steps[step].help.slice(0, hints).map((hint, index) => <pre key={index}>Hint {index + 1}: {hint}</pre>)}<button className="text-button" disabled={!state.observed[step] || hints === 3} onClick={() => dispatch({ type: 'hint' })}>Show next hint</button></div>
-    {completed === 6 && <div className="mission-finished"><h3>Practice journey complete</h3><p>You explored, forecast, compared, repaired, checked timing, and inspected a stocking outcome. The fresh-data final challenge and reflection are a later mission stage; this practice journey does not award a final win.</p></div>}
+    {completed === 6 && <div className="mission-finished"><h3>Practice journey complete</h3><p>You explored, forecast, compared, repaired, checked timing, and inspected a stocking outcome. Continue to the fresh-data final challenge and reflection; this practice journey does not award a final win.</p><button className="run-button" onClick={onOpenFinal}>Open final challenge</button></div>}
     <div className="recovery-controls">{state.current < 5 && <button className="run-button" disabled={!state.evidence[step]} onClick={() => dispatch({ type: 'next' })}>Continue to next step</button>}<button className="text-button" onClick={() => dispatch({ type: 'pause' })}>Return to free practice</button></div>
   </section>;
 }
