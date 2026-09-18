@@ -17,6 +17,9 @@ predictions = pd.Series(model.predict(future[features]), index=future.index)`;
 }
 
 const split = evaluationSplit(21);
+export function timingRepairStarter(choice: TimingChoice) {
+  return leakageStarter(choice).split('model = LinearRegression()')[0] + '# Create and fit the model, then return dated predictions.\nraise NotImplementedError("Write the training and prediction block")';
+}
 // A deliberately tempting fictional closing report, counting all requests,
 // including unfulfilled demand. It is not fulfilled sales or a planned input.
 export const leakageScenario = {
@@ -28,6 +31,6 @@ export const leakageForecast = {
   future: scenario.future.map((row) => ({ ...row })),
 };
 export const approvedTimingPrograms = [leakageStarter('closing'), leakageStarter('known'), leakageStarter('known').replace('["day", "promotion"]', '["day"]')];
-export type LeakageAttempt = { number: number; code: string; expectation: string; choice: TimingChoice };
+export type LeakageAttempt = { number: number; code: string; expectation: string; choice: TimingChoice; practiceRepair?: boolean };
 export type LeakageExperiment = LeakageAttempt & PythonResult & ReturnType<typeof scoreEvaluation> & { leakageCheck: LeakageCheck };
 export type FailedTimingAttempt = LeakageAttempt & { validity: 'unverified'; error: string };

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { scenario } from './scenario';
 import { ForecastChart } from './ForecastChart';
+import { useMission } from './mission';
 import './demand-history.css';
 
 const explanations = {
@@ -11,6 +12,10 @@ const explanations = {
 };
 
 export function DemandHistory({ predictions }: { predictions?: number[] }) {
+  const mission = useMission();
+  const [inspectedDay, setInspectedDay] = useState<number>();
+  const [inspectedColumn, setInspectedColumn] = useState<string>();
+  const [viewedFuture, setViewedFuture] = useState(false);
   const [column, setColumn] = useState<keyof typeof explanations>('date');
   const [tab, setTab] = useState<'history' | 'future'>('history');
   const [sort, setSort] = useState('date-asc');
@@ -29,13 +34,17 @@ export function DemandHistory({ predictions }: { predictions?: number[] }) {
   });
   function switchTab(next: 'history' | 'future') {
     setTab(next);
+    if (next === 'future') setViewedFuture(true);
     setSort('date-asc');
   }
+  useEffect(() => {
+    if (selectedDay !== undefined && selectedDay < 28) { setInspectedDay(selectedDay); mission.observe('explore'); }
+  }, [selectedDay, mission.observe]);
   return <section className="history-card" aria-labelledby="history-title">
     <div className="section-heading"><div><span className="eyebrow">GET TO KNOW YOUR DATA</span><h2 id="history-title">Explore the demand history</h2></div></div>
     <p className="simulation-note"><strong>Simulated store data</strong> for a realistic shop scenario. This first mission uses deliberately simple, noise-free demand to make the trend and promotion patterns easy to see.</p>
     <p>Each row represents one product on one day: The Everyday Mug. Demand means mugs customers wanted, not fulfilled sales.</p>
-    <p className="explore-hint">Inspect a day and a column before modeling. Exploring is optional; you can run a forecast whenever you are ready.</p>
+    <p className="explore-hint">{mission.state.active ? 'Inspect a historical day and a column, then open Upcoming week before confirming your inspection.' : 'Inspect a day and a column before modeling. Exploring is optional; you can run a forecast whenever you are ready.'}</p>
     <ForecastChart predictions={predictions} selectedDay={selectedDay} onSelectDay={(day) => {
       const next = day < 28 ? 'history' : 'future';
       if (next !== tab) switchTab(next);
@@ -60,11 +69,12 @@ export function DemandHistory({ predictions }: { predictions?: number[] }) {
     <div id="scenario-panel" role="tabpanel" aria-labelledby={`${tab}-tab`}>
     {tab === 'future' && <p className="future-note">Future inputs are known before forecasting. Actual future demand is unknown; model estimates are predicted demand, never observations.</p>}
     <div className="history-table-scroll" tabIndex={0} aria-label="Scrollable scenario records">
-      <table className="history-table"><caption>{tab === 'history' ? 'Historical observations' : 'Future inputs'} · The Everyday Mug</caption><thead><tr>{Object.keys(explanations).map((name) => <th scope="col" key={name}><button aria-label={`Explain ${name}`} onClick={() => setColumn(name as keyof typeof explanations)}>{name}</button></th>)}</tr></thead><tbody>
+      <table className="history-table"><caption>{tab === 'history' ? 'Historical observations' : 'Future inputs'} · The Everyday Mug</caption><thead><tr>{Object.keys(explanations).map((name) => <th scope="col" key={name}><button aria-label={`Explain ${name}`} onClick={() => { setColumn(name as keyof typeof explanations); setInspectedColumn(name); }}>{name}</button></th>)}</tr></thead><tbody>
         {rows.map((row) => <tr key={row.day} ref={selectedDay === row.day ? selectedRow : undefined} className={selectedDay === row.day ? 'selected-observation' : undefined} onClick={() => setSelectedDay(row.day)}><th scope="row"><button className="select-observation" aria-pressed={selectedDay === row.day} onClick={() => setSelectedDay(row.day)}>{row.date}</button></th><td>{row.day}</td><td>{row.promotion}</td><td>{row.demand ?? 'Unknown'}</td></tr>)}
       </tbody></table>
     </div>
     </div>
     <div className="column-explanation" role="region" aria-label="Column explanation"><strong>{column}</strong><p>{explanations[column]}</p></div>
+    {mission.state.active && mission.step === 'explore' && <button className="run-button practice-inspect" disabled={inspectedDay === undefined || !inspectedColumn || !viewedFuture} onClick={() => { if (inspectedDay !== undefined && inspectedColumn) mission.dispatch({ type: 'inspect', evidence: { step: 'explore', day: inspectedDay, column: inspectedColumn } }); }}>I inspected the history and future inputs</button>}
   </section>;
 }

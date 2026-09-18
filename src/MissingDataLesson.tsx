@@ -2,17 +2,21 @@ import { useEffect, useState } from 'react';
 import { scoreEvaluation } from './evaluation';
 import { missingDataDates, missingDataFixture, missingDataStarter, preparationLabels, type MissingDataAttempt, type PreparationChoice } from './missing-data';
 import { usePython } from './use-python';
+import { useMission, usePracticeAttempt } from './mission';
 import './missing-data.css';
 
-type Submitted = Pick<MissingDataAttempt, 'number' | 'code' | 'expectation' | 'choice' | 'trainingDates' | 'evaluationDates'>;
+type Submitted = Pick<MissingDataAttempt, 'number' | 'code' | 'expectation' | 'choice' | 'trainingDates' | 'evaluationDates' | 'practiceRepair'>;
 
 export function MissingDataLesson() {
+  const mission = useMission();
+  const starter = (choice: PreparationChoice) => missingDataStarter(choice, mission.state.active);
   const python = usePython();
   const [choice, setChoice] = useState<PreparationChoice>('untreated');
   const [code, setCode] = useState(missingDataStarter('untreated'));
   const [expectation, setExpectation] = useState('');
   const [submitted, setSubmitted] = useState<Submitted>();
   const [records, setRecords] = useState<MissingDataAttempt[]>([]);
+  usePracticeAttempt('repair', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const observedFailure = records.some((record) => record.status === 'failed');
 
@@ -28,7 +32,7 @@ export function MissingDataLesson() {
   }, [submitted, python.phase, python.result, python.message]);
 
   function run() {
-    setSubmitted({ number: (submitted?.number ?? 0) + 1, code, expectation: expectation.trim(), choice, trainingDates: [...missingDataDates.training], evaluationDates: [...missingDataDates.evaluation] });
+    setSubmitted({ number: (submitted?.number ?? 0) + 1, code, expectation: expectation.trim(), choice, practiceRepair: mission.state.active && choice === 'median' && observedFailure, trainingDates: [...missingDataDates.training], evaluationDates: [...missingDataDates.evaluation] });
     python.run({ code, scenario: missingDataFixture, evaluationDates: missingDataDates.evaluation });
   }
   function reset() {
@@ -39,7 +43,7 @@ export function MissingDataLesson() {
   }
   function choose(next: PreparationChoice) {
     setChoice(next);
-    setCode((current) => current === missingDataStarter(choice) ? missingDataStarter(next) : current);
+    setCode((current) => current === starter(choice) ? starter(next) : current);
   }
 
   return <section className="results-card missing-data-lesson" aria-labelledby="missing-data-title">
@@ -49,9 +53,10 @@ export function MissingDataLesson() {
     <table className="forecast-table"><caption>Missing-value locations · day column</caption><thead><tr><th scope="col">Date</th><th scope="col">Partition</th><th scope="col">Day value</th></tr></thead><tbody><tr><th scope="row">2026-09-10</th><td>Training</td><td>Missing</td></tr><tr><th scope="row">2026-09-24</th><td>Evaluation</td><td>Missing</td></tr></tbody></table>
     <p>Try the incomplete inputs, then inspect what happened before choosing a repair.</p>
     <label>Preparation choice <select value={choice} disabled={python.phase === 'running'} onChange={(event) => choose(event.target.value as PreparationChoice)}><option value="untreated">{preparationLabels.untreated}</option><option value="median" disabled={!observedFailure}>{preparationLabels.median}</option></select></label>
-    {code !== missingDataStarter(choice) && <p className="inline-note">Custom Python is preserved. The visual choice is your intention; saved code determines the preparation actually run. Restore the starter to apply the selected choice.</p>}
+    {code !== starter(choice) && <p className="inline-note">Custom Python is preserved. The visual choice is your intention; saved code determines the preparation actually run. Restore the starter to apply the selected choice.</p>}
     <label>Missing-data expectation <input value={expectation} maxLength={500} disabled={python.phase === 'running'} onChange={(event) => setExpectation(event.target.value)} placeholder="What might happen to training or forecast error?" /></label>
-    <div className="code-label"><label htmlFor="missing-data-code">Missing-data Python</label><button className="text-button" disabled={python.phase === 'running'} onClick={() => setCode(missingDataStarter(choice))}>Restore missing-data starter</button></div>
+    <div className="code-label"><label htmlFor="missing-data-code">Missing-data Python</label><button className="text-button" disabled={python.phase === 'running'} onClick={() => setCode(starter(choice))}>Restore missing-data starter</button></div>
+    {mission.state.active && choice === 'median' && <p className="inline-note">Less scaffolding: replace the NotImplementedError with your two preparation lines. Hints offer increasing help after you have seen a consequence.</p>}
     <p className="code-help">Edit the preparation and train a real model. Return a pandas Series named predictions indexed by future.index. The supported repair starter learns fill values from training only; custom code is not automatically audited for imputation leakage.</p>
     <div className="editor"><textarea id="missing-data-code" spellCheck={false} value={code} disabled={python.phase === 'running'} onChange={(event) => setCode(event.target.value)} /></div>
     <div className="run-bar"><span role="status">{python.phase === 'error' ? 'Missing-data experiment failed' : python.phase === 'complete' ? 'Missing-data experiment complete' : python.message}</span><button className="run-button" disabled={busy || python.phase === 'unavailable' || !code.trim() || !expectation.trim()} onClick={run}>Run missing-data experiment</button></div>
@@ -70,6 +75,7 @@ export function MissingDataLesson() {
         {record.output && <details className="python-output"><summary>Saved output · run {record.number}</summary><pre>{record.output}</pre></details>}
       </>}
       <details className="python-output"><summary>Saved missing-data Python · run {record.number}</summary><pre>{record.code}</pre></details>
+      {mission.state.active && record.status === 'completed' && record.practiceRepair && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'repair', record } })}>I inspected repaired run {record.number}</button>}
     </article>)}
   </section>;
 }

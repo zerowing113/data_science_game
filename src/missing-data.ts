@@ -7,6 +7,7 @@ export type MissingDataAttempt = {
   code: string;
   expectation: string;
   choice: PreparationChoice;
+  practiceRepair?: boolean;
   trainingDates: string[];
   evaluationDates: string[];
 } & (
@@ -27,14 +28,16 @@ export const preparationLabels: Record<PreparationChoice, string> = {
   untreated: 'Leave missing values untreated',
   median: 'Fill with training medians',
 };
-export function missingDataStarter(choice: PreparationChoice) {
+export function missingDataStarter(choice: PreparationChoice, guided = false) {
   const preparation = choice === 'median'
     ? `from sklearn.impute import SimpleImputer
 imputer = SimpleImputer(strategy="median")
+${guided ? `# Write two lines: learn from training, then transform later inputs.
+raise NotImplementedError("Write the preparation block")` : `
 # Learn fill values ONLY from earlier training rows.
 X_train = imputer.fit_transform(history[features])
 # Apply the same learned values to later inputs; do not fit again.
-X_future = imputer.transform(future[features])
+X_future = imputer.transform(future[features])`}
 print("Training fill values:", dict(zip(features, imputer.statistics_)))`
     : `# Try the incomplete inputs first.
 X_train = history[features]

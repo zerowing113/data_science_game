@@ -3,10 +3,11 @@ import { evaluationSplit, evaluationStarter, scoreEvaluation, type TrainingDays 
 import { featureLine, starterFeaturesAssignment, type FeatureChoice } from './scenario';
 import type { PythonResult } from './python-types';
 import { usePython } from './use-python';
+import { useMission, usePracticeAttempt } from './mission';
 import './evaluation.css';
 
 type Attempt = { number: number; trainingDays: TrainingDays; code: string; choice: FeatureChoice; expectation: string };
-type Evaluation = Attempt & PythonResult & ReturnType<typeof scoreEvaluation>;
+export type EvaluationRecord = Attempt & PythonResult & ReturnType<typeof scoreEvaluation>;
 
 function SplitDates({ trainingDays }: { trainingDays: TrainingDays }) {
   const { history, heldOut } = evaluationSplit(trainingDays);
@@ -14,13 +15,15 @@ function SplitDates({ trainingDays }: { trainingDays: TrainingDays }) {
 }
 
 export function EvaluationLab() {
+  const mission = useMission();
   const python = usePython();
   const [trainingDays, setTrainingDays] = useState<TrainingDays>(21);
   const [choice, setChoice] = useState<FeatureChoice>('trend');
   const [code, setCode] = useState(evaluationStarter('trend'));
   const [expectation, setExpectation] = useState('');
   const [submitted, setSubmitted] = useState<Attempt>();
-  const [runs, setRuns] = useState<Evaluation[]>([]);
+  const [runs, setRuns] = useState<EvaluationRecord[]>([]);
+  usePracticeAttempt('evaluate', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const split = evaluationSplit(trainingDays);
 
@@ -65,6 +68,7 @@ export function EvaluationLab() {
       <div className="evaluation-table-scroll"><table className="forecast-table"><caption>Evaluation details · run {record.number}</caption><thead><tr>{['Date', 'Actual demand', 'Baseline', 'Model', 'Baseline absolute error', 'Model absolute error'].map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead><tbody>{record.rows.map((row) => <tr key={row.date}><th scope="row">{row.date}</th>{[row.actual, row.baseline, row.predicted, row.baselineError, row.modelError].map((value, index) => <td key={index}>{value.toFixed(2)}</td>)}</tr>)}</tbody></table></div>
       <details className="python-output"><summary>Saved evaluation Python · run {record.number}</summary><pre>{record.code}</pre></details>
       {record.output && <details className="python-output"><summary>Evaluation output · run {record.number}</summary><pre>{record.output}</pre></details>}
+      {mission.state.active && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'evaluate', record } })}>I inspected evaluation run {record.number}</button>}
     </article>)}
   </section>;
 }

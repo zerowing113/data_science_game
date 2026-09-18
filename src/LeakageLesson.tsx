@@ -3,9 +3,13 @@ import { evaluationSplit, scoreEvaluation } from './evaluation';
 import { approvedTimingPrograms, leakageForecast, leakageScenario, leakageStarter, timingAssignment, timingFeatures, type FailedTimingAttempt, type LeakageAttempt, type LeakageExperiment, type TimingChoice } from './leakage';
 import { scenario } from './scenario';
 import { usePython } from './use-python';
+import { useMission, usePracticeAttempt } from './mission';
+import { timingRepairStarter } from './leakage';
 import './leakage.css';
 
 export function LeakageLesson() {
+  const mission = useMission();
+  const [repairStage, setRepairStage] = useState(false);
   const python = usePython();
   const [choice, setChoice] = useState<TimingChoice>('closing');
   const [code, setCode] = useState(leakageStarter('closing'));
@@ -13,6 +17,8 @@ export function LeakageLesson() {
   const [submitted, setSubmitted] = useState<LeakageAttempt>();
   const [runs, setRuns] = useState<LeakageExperiment[]>([]);
   const [failures, setFailures] = useState<FailedTimingAttempt[]>([]);
+  usePracticeAttempt('timing', python.phase, submitted !== undefined);
+  const hasConsequence = runs.some((record) => record.leakageCheck.validity === 'leaked' || record.leakageCheck.forecastError);
   const busy = python.phase === 'loading' || python.phase === 'running';
   useEffect(() => {
     if (!submitted || !python.result) return;
@@ -25,7 +31,7 @@ export function LeakageLesson() {
     setFailures((saved) => saved.some((record) => record.number === failed.number) ? saved : [...saved, failed]);
   }, [submitted, python.phase, python.message, runs]);
   function run() {
-    setSubmitted({ number: (submitted?.number ?? 0) + 1, code, choice, expectation: expectation.trim() });
+    setSubmitted({ number: (submitted?.number ?? 0) + 1, code, choice, practiceRepair: mission.state.active && repairStage, expectation: expectation.trim() });
     python.run({ code, scenario: leakageScenario, evaluationDates: evaluationSplit(21).heldOut.map((row) => row.date), leakageCheck: { forecast: leakageForecast, approvedPrograms: approvedTimingPrograms } });
   }
   function reset() {
@@ -48,7 +54,8 @@ export function LeakageLesson() {
     <p>The selector edits the starter feature line. Saved Python determines validity; editing Python directly may leave the selector showing your earlier choice.</p>
     {!timingAssignment.test(code) && <p className="inline-note">Custom feature code is preserved. Edit Python directly or restore the timing starter to reconnect the selector.</p>}
     <label>Leakage expectation <input maxLength={500} value={expectation} disabled={python.phase === 'running'} onChange={(event) => setExpectation(event.target.value)} placeholder="Will this work before next week happens?" /></label>
-    <div className="code-label"><label htmlFor="leakage-code">Leakage Python</label><button className="text-button" disabled={python.phase === 'running'} onClick={() => setCode(leakageStarter(choice))}>Restore timing starter</button></div>
+    {mission.state.active && <><p className="inline-note">After seeing the closing report fail, choose your repair features and start the independent repair. You will write the whole training and prediction block. Your earlier attempts stay saved below.</p><button className="text-button" disabled={!hasConsequence || busy || repairStage} onClick={() => { setRepairStage(true); setCode(timingRepairStarter(choice)); }}>Start independent timing repair</button></>}
+    <div className="code-label"><label htmlFor="leakage-code">Leakage Python</label><button className="text-button" disabled={python.phase === 'running'} onClick={() => setCode(mission.state.active && repairStage ? timingRepairStarter(choice) : leakageStarter(choice))}>Restore timing starter</button></div>
     <div className="editor"><textarea id="leakage-code" spellCheck={false} value={code} disabled={python.phase === 'running'} onChange={(event) => setCode(event.target.value)} /></div>
     <p className="code-help">Return a pandas Series named predictions with future.index. Timing verification supports this LinearRegression recipe with closing_requested_units, day, or day + promotion. Comments and formatting may change. Other custom programs still execute, but remain unverified.</p>
     <div className="run-bar"><span role="status">{python.phase === 'complete' ? 'Timing experiment complete' : python.message}</span><button className="run-button" disabled={busy || python.phase === 'unavailable' || !code.trim() || !expectation.trim()} onClick={run}>Run timing experiment</button></div>
@@ -69,6 +76,7 @@ export function LeakageLesson() {
       {record.leakageCheck?.forecastPredictions && <><p>The same code was retrained on all 28 observed days and executed on September 28–October 4 inputs. Upcoming demand is unknown; these are predictions, with no future MAE.</p><table className="forecast-table"><caption>Upcoming predictions</caption><thead><tr><th scope="col">Date</th><th scope="col">Predicted demand</th></tr></thead><tbody>{record.leakageCheck.forecastPredictions.map((value, index) => <tr key={scenario.future[index].date}><th scope="row">{scenario.future[index].date}</th><td>{value.toFixed(2)}</td></tr>)}</tbody></table></>}
       <details className="python-output"><summary>Saved timing Python · experiment {record.number}</summary><pre>{record.code}</pre></details>
       {record.output && <details className="python-output"><summary>Timing output · experiment {record.number}</summary><pre>{record.output}</pre></details>}
+      {mission.state.active && record.practiceRepair && record.leakageCheck.validity === 'valid' && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'timing', record } })}>I inspected valid timing experiment {record.number}</button>}
     </article>)}
     {failures.map((record) => <article className="timing-record" key={record.number} aria-label={`Failed timing attempt ${record.number}`}><h3>Failed timing attempt {record.number}</h3><p><strong>Validity: {record.validity}</strong>. No historical score or upcoming predictions were saved.</p><p>Before running: {record.expectation}</p><div className="error-box"><pre>{record.error}</pre></div><details className="python-output"><summary>Saved failed timing Python · attempt {record.number}</summary><pre>{record.code}</pre></details></article>)}
   </section>;

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { MissionProvider, useMission, usePracticeAttempt, practiceSteps } from './mission';
+import { MissionGuide } from './MissionGuide';
 import { DemandHistory } from './DemandHistory';
 import { EvaluationLab } from './EvaluationLab';
 import { MissingDataLesson } from './MissingDataLesson';
@@ -10,7 +12,12 @@ import { usePython } from './use-python';
 
 type SubmittedRun = { number: number; code: string; expectation: string; choice: FeatureChoice };
 
-export default function App() {
+export default function App() { return <MissionProvider><Workspace /></MissionProvider>; }
+
+function Workspace() {
+  const mission = useMission();
+  const visible = (step: string) => !mission.state.active || mission.step === step;
+  const reached = (step: typeof practiceSteps[number]) => practiceSteps.indexOf(step) <= Object.keys(mission.state.evidence).length;
   const [choice, setChoice] = useState<FeatureChoice>('trend');
   const [code, setCode] = useState(starterCode('trend'));
   const [expectation, setExpectation] = useState('');
@@ -20,6 +27,7 @@ export default function App() {
   const [missingDataOpen, setMissingDataOpen] = useState(false);
   const [leakageOpen, setLeakageOpen] = useState(false);
   const python = usePython();
+  usePracticeAttempt('forecast', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const dirty = submitted !== undefined && submitted.code !== code;
   const predictions = python.result?.predictions;
@@ -46,6 +54,7 @@ export default function App() {
     </header>
     <main id="main">
       <div className="page-heading"><div><span className="eyebrow">YOU'RE THE SHOP'S NEW ANALYST</span><h1>Your first forecast</h1><p>A small shop. A growing demand. What will next week look like?</p></div><div className="mission-tag"><span>MISSION 01</span><strong>Predict daily demand</strong></div></div>
+      <MissionGuide />
       <div className="workspace">
         <aside className="shop-column">
           <section className="shop-card" aria-labelledby="shop-title">
@@ -60,7 +69,8 @@ export default function App() {
           <p className="data-note">Simulated shop · intentionally simple data.<br />Demand means mugs wanted, not sales fulfilled.</p>
         </aside>
         <div className="analyst-column">
-          <DemandHistory predictions={predictions} />
+          <div className="practice-panel" hidden={!visible("explore") && !visible("forecast")}><DemandHistory predictions={predictions} /></div>
+          <div className="practice-panel" hidden={!visible("forecast")}>
           <section className="experiment-card" aria-labelledby="experiment-title">
             <div className="section-heading"><div><span className="eyebrow">YOUR WORKBENCH</span><h2 id="experiment-title">Build a little intuition.</h2></div><span className="step-count">01 → 02 → 03</span></div>
             <fieldset disabled={python.phase === 'running'}><legend><span className="step-number">1</span>Choose what your model can see</legend><div className="feature-choices">
@@ -98,10 +108,15 @@ export default function App() {
               {previous.output && <details className="python-output"><summary>Saved output · run {previous.number}</summary><pre>{previous.output}</pre></details>}
             </details>}
           </section>
-          <StockingDesk forecast={previous} />
-          {evaluationOpen ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
-          {missingDataOpen ? <MissingDataLesson /> : <section className="results-card"><h2>What if the data is incomplete?</h2><p>Inspect missing values, try a preparation choice, and compare the evidence from your runs.</p><button className="run-button" onClick={() => setMissingDataOpen(true)}>Open missing-data lesson</button></section>}
-          {leakageOpen ? <LeakageLesson /> : <section className="results-card"><h2>Can you use that feature in time?</h2><p>Investigate an impressive historical result and test whether its inputs support a real forecast.</p><button className="run-button" onClick={() => setLeakageOpen(true)}>Open leakage lesson</button></section>}
+          {mission.state.active && python.result && submitted && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'forecast', record: { ...submitted, ...python.result! } } })}>I inspected forecast run {submitted.number}</button>}
+          </div>
+          <div className="practice-panel" hidden={!visible("stock")}><StockingDesk forecast={previous} /></div>
+          <div className="practice-panel" hidden={!visible("evaluate")} >{evaluationOpen || reached("evaluate") ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
+          </div>
+          <div className="practice-panel" hidden={!visible("repair")} >{missingDataOpen || reached("repair") ? <MissingDataLesson /> : <section className="results-card"><h2>What if the data is incomplete?</h2><p>Inspect missing values, try a preparation choice, and compare the evidence from your runs.</p><button className="run-button" onClick={() => setMissingDataOpen(true)}>Open missing-data lesson</button></section>}
+          </div>
+          <div className="practice-panel" hidden={!visible("timing")} >{leakageOpen || reached("timing") ? <LeakageLesson /> : <section className="results-card"><h2>Can you use that feature in time?</h2><p>Investigate an impressive historical result and test whether its inputs support a real forecast.</p><button className="run-button" onClick={() => setLeakageOpen(true)}>Open leakage lesson</button></section>}
+          </div>
         </div>
       </div>
       <footer><span>little goods · big questions</span><span>Your code runs in this browser. No Python installation needed.</span></footer>

@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useMission } from './mission';
 import { scenario } from './scenario';
 import { advanceShop, money, shopRules, validStock, type ForecastExperiment, type StockingDecision } from './shop';
 import './stocking.css';
 
 export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
+  const mission = useMission();
   const [selected, setSelected] = useState<ForecastExperiment>();
   const [draft, setDraft] = useState<string[]>([]);
   const [committed, setCommitted] = useState(false);
@@ -23,6 +25,7 @@ export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
     const outcome = advanceShop(stock);
     setDecisions((previous) => [...previous, { ...outcome, number: previous.length + 1, experiment: selected, replay: previous.length > 0 }]);
     setCommitted(true);
+    mission.observe('stock');
   }
 
   return <section className="results-card stocking-desk" aria-labelledby="stocking-title">
@@ -51,6 +54,7 @@ export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
       {decision.rows.map((row) => <div className="stock-day" key={row.date}><span>{row.date}</span><div className="stock-bar" role="img" aria-label={`${row.date}: ${row.fulfilled} fulfilled, ${row.lost} lost sales, ${row.leftover} leftover`}>{[row.fulfilled, row.lost, row.leftover].map((value, index) => <i key={index} className={['fulfilled', 'lost', 'leftover'][index]} style={{ width: `${value / Math.max(row.demand, row.stock, 1) * 100}%` }} />)}</div><span>{row.fulfilled} sold · {row.lost} lost · {row.leftover} left</span></div>)}
       <div className="stock-table-scroll" tabIndex={0} role="region" aria-label={`Shop outcomes for decision ${decision.number}`}><table className="forecast-table"><caption>Daily shop outcomes · decision {decision.number}</caption><thead><tr>{['Date', 'Forecast', 'Stock', 'Demand', 'Fulfilled', 'Lost', 'Leftover', 'Profit'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>{decision.rows.map((row, index) => <tr key={row.date}><th scope="row">{row.date}</th><td>{decision.experiment.predictions[index].toFixed(1)}</td><td>{row.stock}</td><td>{row.demand}</td><td>{row.fulfilled}</td><td>{row.lost}</td><td>{row.leftover}</td><td>{money(row.profitCents)}</td></tr>)}</tbody></table></div>
       <details className="python-output"><summary>Source forecast · decision {decision.number}</summary><p>Forecast run {decision.experiment.number} · visual choice: {decision.experiment.choice === 'trend' ? 'Trend only' : 'Trend + promotions'}. The saved code determines the actual model and features.</p><p>Original expectation: {decision.experiment.expectation}</p><pre>{decision.experiment.code}</pre>{decision.experiment.output && <pre>{decision.experiment.output}</pre>}</details>
+      {mission.state.active && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'stock', record: decision } })}>I inspected stocking decision {decision.number}</button>}
     </article>)}
   </section>;
 }

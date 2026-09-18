@@ -1,0 +1,14 @@
+.mission-guide { background: #f4f7e9; border: 1px solid #d6dfc5; border-radius: 16px; padding: 24px; margin-bottom: 24px; min-width: 0; }
+.mission-guide h2 { margin: 5px 0 12px; scroll-margin-top: 20px; }
+.mission-guide p { margin: 12px 0; color: #435d4b; font-size: 14px; }
+.mission-guide progress { width: 100%; height: 12px; accent-color: #39765a; }
+.mission-guide nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.mission-guide nav button { border: 1px solid #bdccb3; padding: 8px; border-radius: 6px; background: white; color: #264530; }
+.mission-guide nav button[aria-current] { border: 2px solid #39765a; }
+.mission-guide button:disabled { opacity: .55; }
+.mission-hints { border-top: 1px solid #d6dfc5; margin-top: 18px; }
+.mission-hints pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.6 Consolas, monospace; margin: 12px 0; }
+.mission-evidence, .mission-finished { background: white; padding: 14px; border-radius: 8px; }
+.practice-panel[hidden] { display: none; }
+.practice-panel { display: grid; gap: 24px; min-width: 0; }
+.practice-inspect { margin-top: 16px; }
