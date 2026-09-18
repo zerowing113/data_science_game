@@ -86,6 +86,12 @@ legend, .prediction-input > label, .code-label label { font-size: 14px; font-wei
 .run-button span { margin-left: 18px; font-size: 10px; }
 .run-button:hover:enabled { background: #cddd7c; }
 .run-hint { text-align: right; }
+.recovery-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.recovery-controls > span { color: #68766b; font-size: 11px; }
+.secondary-button { border: 1px solid #b9c6b1; background: #f5f7ee; color: #264530; border-radius: 6px; padding: 7px 12px; font-size: 12px; }
+.previous-run { margin-top: 18px; border-top: 1px solid #e2e8db; padding-top: 14px; font-size: 13px; }
+.previous-run summary { cursor: pointer; font-weight: 700; }
+.previous-run p { margin-top: 10px; color: #5b715c; }
 .units-label { font-size: 10px; color: #768272; letter-spacing: 1px; }
 .forecast-chart { width: 100%; height: auto; overflow: visible; display: block; }
 .forecast-chart text { fill: #6b796c; font: 12px 'DM Sans', sans-serif; }

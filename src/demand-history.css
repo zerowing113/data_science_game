@@ -1,0 +1,26 @@
+.history-card { padding: 27px; background: #fff; border: 1px solid #e0e5d9; border-radius: 18px; min-width: 0; }
+.history-card > p { font-size: 13px; color: #5a6c63; margin-bottom: 12px; }
+.history-card .simulation-note { background: #f4f7e9; padding: 12px 15px; border-radius: 8px; }
+.simulation-note strong { color: #203c34; }
+.history-card .explore-hint { font-size: 12px; }
+.history-table-scroll { max-height: 310px; overflow: auto; margin-top: 16px; border: 1px solid #e0e5d9; border-radius: 8px; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.history-table caption { text-align: left; padding: 12px; color: #5a6c63; }
+.history-table th, .history-table td { padding: 9px 12px; border-bottom: 1px solid #edf0e7; text-align: right; font-weight: 400; white-space: nowrap; }
+.history-table th:first-child { text-align: left; }
+.history-table thead { position: sticky; top: 0; background: #f5f7ee; }
+.history-table thead button { background: none; border: 0; padding: 2px; text-decoration: underline; text-underline-offset: 3px; color: #264530; font-weight: 700; }
+.column-explanation { margin-top: 12px; border-left: 3px solid #9aaa63; padding: 9px 12px; font-size: 12px; background: #f8faef; }
+.history-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.history-controls [role="tablist"] { display: flex; gap: 4px; }
+.history-controls [role="tab"] { border: 1px solid #dce3d8; border-radius: 6px; padding: 8px 12px; background: #fff; color: #264530; font-size: 12px; }
+.history-controls [aria-selected="true"] { background: #e8efa3; border-color: #8eaa6c; }
+.history-controls label { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; font-size: 12px; }
+.history-controls select { max-width: 100%; padding: 7px; font: inherit; border: 1px solid #dce3d8; border-radius: 6px; color: #264530; background: #fff; }
+.future-note { font-size: 12px; color: #5a6c63; margin-top: 12px; }
+.select-observation { border: 0; padding: 2px; background: transparent; color: #264530; font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.history-table tbody tr { cursor: pointer; }
+.history-table .selected-observation { background: #fff0c9; box-shadow: inset 3px 0 #ad7217; }
+.forecast-chart [role="button"] { cursor: pointer; }
+.forecast-chart [role="button"]:focus-visible { outline: none; stroke: #ad7217; stroke-width: 4; }
+@media (max-width: 1050px) { .history-card { padding: 20px; } }

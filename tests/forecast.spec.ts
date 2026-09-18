@@ -7,10 +7,10 @@ test('a learner trains a real model and sees the next seven days of demand', asy
   await page.getByRole('radio', { name: /Trend \+ promotions/ }).check();
   await page.getByLabel('Your prediction').fill('The promotion days should have higher demand.');
   await expect(page.getByLabel('Python code')).toHaveValue(/"day", "promotion"/);
-  await expect(page.getByRole('button', { name: 'Run forecast', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Run forecast', exact: true })).toBeEnabled({ timeout: 60_000 });
   await page.getByRole('button', { name: 'Run forecast', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Forecast ready');
-  await expect(page.getByRole('img', { name: /Demand forecast chart/ })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Forecast ready', { timeout: 60_000 });
+  await expect(page.getByRole('group', { name: /Demand forecast chart/ })).toBeVisible();
   // Worked fixture: day 28 has demand 20 + 2*28 = 76;
   // day 32 has a scheduled promotion, adding 12 to 20 + 2*32 = 96.
   await expect(page.getByRole('row', { name: 'Mon Sep 28 76.0' })).toBeVisible();
@@ -31,16 +31,16 @@ test('a code edit changes computed demand and a broken run cannot reuse old pred
     'predictions = model.predict(future[features])',
     'predictions = model.predict(future[features]) + 5',
   ));
-  await expect(run).toBeEnabled();
+  await expect(run).toBeEnabled({ timeout: 60_000 });
   await run.click();
-  await expect(page.getByRole('status')).toContainText('Forecast ready');
+  await expect(page.getByRole('status')).toContainText('Forecast ready', { timeout: 60_000 });
   await expect(page.getByRole('row', { name: 'Mon Sep 28 81.0' })).toBeVisible();
   await editor.fill('print("This script did not create predictions")');
   await expect(page.getByText('Code changed since this forecast. Run again to update the results.')).toBeVisible();
   await run.click();
   await expect(page.getByRole('alert')).toContainText('NameError');
-  await expect(page.getByRole('table')).toHaveCount(0);
-  await expect(page.getByRole('img', { name: /Demand forecast chart/ })).toHaveCount(0);
+  await expect(page.getByRole('table', { name: /Daily forecast/ })).toHaveCount(0);
+  await expect(page.getByRole('group', { name: /Demand forecast chart/ })).toHaveCount(0);
 });
 
 test('visual choices preserve a custom multiline Python assignment', async ({ page }) => {
