@@ -36,6 +36,12 @@ The opening forecast and baseline comparison provide working code. Guided median
 
 Previously reached workspaces remain mounted, preserving editors, attempts, Python sessions, and saved outcomes when revisited or when switching to free practice. The guide retains the exact inspected source record for each completed step. Progress, hints, and records save automatically in this browser profile. Completing all six steps marks the **practice journey** complete; it does not claim a final win, fresh unseen evaluation, or demonstrated learning. The final challenge uses fresh data and requires a valid forecast that beats the baseline, committed stock, and a three-part reflection. Revealed results, explanations, and earlier recaps remain saved; retrying starts a new reproducible challenge.
 
+## Download and play
+
+Download the [latest offline test preview](https://github.com/zerowing113/data_science_game/releases) for Windows x64, Intel Mac, or Apple Silicon Mac. Extract the ZIP and open **Start Game**; no developer tools or Python installation are needed. The repository and downloads are public.
+
+The published preview 1 does not save progress. The current source includes automatic save/resume in the same browser profile; a download containing this feature has not yet been published. These are unsigned test builds; normal downloaded-app security prompts and disconnected-device acceptance are tracked in [#10](https://github.com/zerowing113/data_science_game/issues/10). See the [player guide](docs/offline-player-guide.md) before testing.
+
 ## Start locally
 
 Requires Node.js 22.12 or newer and npm. No Python installation is needed.

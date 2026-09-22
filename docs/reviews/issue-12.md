@@ -21,3 +21,13 @@ Final verification on September 22, 2026: all 42 browser tests passed against th
 ## Release boundary
 
 The local Windows archive is a working-tree verification build, not a published release. The published preview.1 still predates persistence. The native CI workflow now includes persistence and process-restart checks on all three targets, but those new checks have not been run on macOS in this session. Normal Explorer/Finder launch, disconnected-device acceptance, and the learner playtest remain #10/#11 work.
+
+## Completion review, September 22, 2026
+
+Rechecked the committed implementation (`git diff 56744a3...ff4ff88`) against all eight acceptance criteria in GitHub issue #12 and ADR 0002. Separate standards and specification reviewers inspected the code again. Standards found no documented violations and one nonblocking maintainability concern: saved-state key/value types and runtime validators are maintained separately, so future schema changes require coordinated edits. No speculative refactor was added to this completed slice. Specification review found no missing requirements, incorrect behavior, or substantive scope creep.
+
+The focused 12-test persistence file, TypeScript check, and production build passed again. Built a fresh Windows archive from the current source, extracted it with manifest/checksum verification, and passed all three launcher checks, the fresh-browser offline Python smoke test, and the complete launcher/browser process-restart check. This is a local working-tree verification artifact; it is not a replacement public release.
+
+The final full packaged browser suite passed all 42 tests in 7.9 minutes with external networking blocked, including the complete guided journey, final challenge, all 12 persistence tests, runtime recovery, and stocking outcomes. Package tests ran sequentially to avoid shared artifact-directory collisions.
+
+The README now distinguishes the published session-only preview from the current save/resume source. Ticket #12 completion concerns persistence and recovery; replacement downloads and native-device release acceptance remain in #10, and learner observations remain in #11.
