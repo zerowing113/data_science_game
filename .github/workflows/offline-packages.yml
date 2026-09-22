@@ -16,7 +16,7 @@ jobs:
           - runner: macos-14
             target: macos-apple-silicon
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,7 +44,8 @@ jobs:
       - run: node --test tests/launcher.test.mjs
       - run: npx playwright test -c playwright.offline.config.ts
       - run: npm run test:restart
-      - run: npx playwright test -c playwright.packaged.config.ts tests/mission.spec.ts tests/challenge.spec.ts tests/recovery.spec.ts tests/persistence.spec.ts
+      - name: Verify the full mission and persistence suite offline
+        run: npx playwright test -c playwright.packaged.config.ts
       - uses: actions/upload-artifact@v4
         with:
           name: little-goods-${{ matrix.target }}-unsigned-test
