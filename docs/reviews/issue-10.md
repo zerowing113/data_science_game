@@ -1,5 +1,7 @@
 # Ticket 10: downloadable offline test edition
 
+The original review below records preview 1 on September 18, 2026. Its session-only and private-distribution statements describe that historical build. Save/resume is now complete under #12, and distribution is public. See the September 22 continuation at the end for current #10 work.
+
 Baseline: `67294c2`. Review scope: staged changes against that baseline; specification is the updated GitHub ticket #10 and the accepted offline distribution decision.
 
 ## Standards
@@ -31,3 +33,19 @@ Final native result: all three jobs passed at `28b4d4b` on Windows x64, Intel ma
 ## Release boundary
 
 The application remains session-only pending #12, and Stop game warns about losing progress. These are unsigned test builds, with no signing or notarization credentials configured. CI execution of an extracted native executable is distinct from normal downloaded-app security prompts and double-click launch. Automatic approval review rejected the local `Start-Process` attempt to launch the extracted GUI executable with "blocked by policy"; no normal desktop-launch verification is claimed. No repository visibility change, hosted deployment, or completed learner playtest is claimed.
+
+## September 22 release continuation
+
+Baseline: `c72e234`; release implementation: `cb7ee52`. The native workflow now executes all 42 packaged browser tests sequentially after launcher, offline smoke, and full process-restart checks on each target, with a 45-minute job budget. The restart test also retains committed stock, completed final results, and all three reflections across browser/launcher process boundaries. Existing persistence tests cover inspected practice progress across page reopening; the process-restart check does not independently assert that field.
+
+TypeScript checking and the production build pass. The expanded restart check passed against the earlier Windows verification archive. A compatible-replacement check then created a journey in the earlier save-capable `ff4ff88` verification build and resumed it in the clean `cb7ee52` Windows package from a different folder, using the same origin and browser profile. Both executable paths and reported build versions differed. Forecast source, stock source, final completion, disabled resubmission, and original reflections were preserved with external networking blocked.
+
+Standards review found no documented violations or actionable smell findings. Specification review found no blocking implementation defects or scope creep, while retaining the release, current native CI, compatible-replacement evidence, and actual-device observations as separate acceptance requirements. The native-device record explicitly leaves unobserved checks pending.
+
+The first expanded native run was https://github.com/zerowing113/data_science_game/actions/runs/35696045686. Windows passed all 42 browser tests in 15.6 minutes. Apple Silicon passed 41 of 42 in 10.5 minutes, and Intel Mac passed 41 of 42 in 20.7 minutes; both Mac jobs failed only the history-navigation test because its Windows-specific Control+Home shortcut left the correctly focused table scrolled down at 923 rather than 0. The captured Apple Silicon trace showed that all preceding row/chart selection assertions passed. Commit `20e3a28` uses the unmodified Home key and retains the same scroll-position and viewport assertions. All four focused history tests and typechecking passed locally, and both reviewers found no concerns in the correction. Running the complete browser suite on each target exposed this previously untested platform assumption.
+
+Corrected native release verification passed on all three targets at `20e3a280805a`: https://github.com/zerowing113/data_science_game/actions/runs/35697325071. Each job passed three launcher checks, one fresh-browser offline real-Python check, the expanded full process-restart check, and all 42 packaged browser tests. Full-suite durations were Windows 16.9 minutes, Apple Silicon 13.7 minutes, and Intel Mac 22.0 minutes. The same native Mac history test that failed in the first run passed after the key correction.
+
+The three clean CI-built archives and SHA-256 files were verified against the source revision and every manifest file hash before publishing [preview 2](https://github.com/zerowing113/data_science_game/releases/tag/offline-v0.1.0-preview.2). All three ZIPs and checksums were then downloaded from the public release without authentication and verified to match the tested CI artifacts byte-for-byte. The compatible-replacement test passed again using the exact CI-built Windows release executable, retaining forecast and stock attribution, final completion, and the original reflections from the earlier save-capable build.
+
+Ordinary Explorer/Finder launch, security prompts, physically disconnected native-device testing, and the learner session have not been observed in this continuation. The owner has Windows and Apple Silicon devices available for those observations; Intel Mac device access remains unconfirmed. The [device acceptance record](../offline-acceptance.md) contains the released archive hashes and leaves all unobserved device results pending. Ticket #10 remains open for that acceptance; #11 still requires the actual learner session.

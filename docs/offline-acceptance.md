@@ -26,3 +26,13 @@ For each observation record the date, observer, exact build/checksum, OS version
 Link each platform's automated CI evidence alongside these observations in #10. Leave unobserved cells pending. Fix demonstrated blockers and repeat the affected check against the replacement release. Signing/notarization is deferred for the agreed unsigned preview; if ordinary launch cannot succeed under that choice, record the concrete release decision needed rather than claiming platform acceptance.
 
 The separate learner playtest, timing, and understanding assessment belong to #11.
+
+## Published package reference, September 22, 2026
+
+[Preview 2](https://github.com/zerowing113/data_science_game/releases/tag/offline-v0.1.0-preview.2) is built from clean revision `20e3a280805a`. All three native jobs passed the complete 42-test browser suite plus launcher/offline/restart checks in [CI](https://github.com/zerowing113/data_science_game/actions/runs/35697325071). Public unauthenticated downloads match those CI artifacts and their manifests:
+
+- Windows x64: `c26fe06d6b726205c1df70b7688d1097439233766ae308a61cde235957f2aef1`
+- Intel Mac: `fed439e09d67b357065a077f8707a51f17e01589a728b025c31a09b7b4692059`
+- Apple Silicon Mac: `00c8a23a69be8455405e384f4b2fbdf7b5c1f9f58225d8f9e14b633995cba210`
+
+The owner has Windows and Apple Silicon devices available to test. No manual result has been supplied yet; Intel Mac device access is unconfirmed. The pending device table above remains unfilled intentionally. The automated Windows replacement check passed from the prior save-capable verification build to the CI-built preview 2 executable, but that is not an Explorer launch or physical-disconnection observation.
