@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useSavedState } from './journey';
 import { useMission } from './mission';
 import { scenario } from './scenario';
 import { advanceShop, money, shopRules, validStock, type ForecastExperiment, type StockingDecision } from './shop';
@@ -6,10 +6,10 @@ import './stocking.css';
 
 export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
   const mission = useMission();
-  const [selected, setSelected] = useState<ForecastExperiment>();
-  const [draft, setDraft] = useState<string[]>([]);
-  const [committed, setCommitted] = useState(false);
-  const [decisions, setDecisions] = useState<StockingDecision[]>([]);
+  const [selected, setSelected] = useSavedState<ForecastExperiment>('stock.selected');
+  const [draft, setDraft] = useSavedState<string[]>('stock.draft', []);
+  const [committed, setCommitted] = useSavedState('stock.committed', false);
+  const [decisions, setDecisions] = useSavedState<StockingDecision[]>('stock.decisions', []);
   const stock = draft.map((value) => value.trim() === '' ? NaN : Number(value));
   const valid = validStock(stock);
 

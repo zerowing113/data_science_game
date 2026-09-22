@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useSavedState } from './journey';
+import { useEffect, useRef } from 'react';
 import { scenario } from './scenario';
 import { ForecastChart } from './ForecastChart';
 import { useMission } from './mission';
@@ -13,14 +14,14 @@ const explanations = {
 
 export function DemandHistory({ predictions }: { predictions?: number[] }) {
   const mission = useMission();
-  const [inspectedDay, setInspectedDay] = useState<number>();
-  const [inspectedColumn, setInspectedColumn] = useState<string>();
-  const [viewedFuture, setViewedFuture] = useState(false);
-  const [column, setColumn] = useState<keyof typeof explanations>('date');
-  const [tab, setTab] = useState<'history' | 'future'>('history');
-  const [sort, setSort] = useState('date-asc');
-  const [selectedDay, setSelectedDay] = useState<number>();
-  const [chartSelection, setChartSelection] = useState(0);
+  const [inspectedDay, setInspectedDay] = useSavedState<number>('history.inspectedDay');
+  const [inspectedColumn, setInspectedColumn] = useSavedState<string>('history.inspectedColumn');
+  const [viewedFuture, setViewedFuture] = useSavedState('history.viewedFuture', false);
+  const [column, setColumn] = useSavedState<keyof typeof explanations>('history.column', 'date');
+  const [tab, setTab] = useSavedState<'history' | 'future'>('history.tab', 'history');
+  const [sort, setSort] = useSavedState('history.sort', 'date-asc');
+  const [selectedDay, setSelectedDay] = useSavedState<number>('history.selectedDay');
+  const [chartSelection, setChartSelection] = useSavedState('history.chartSelection', 0);
   const selectedRow = useRef<HTMLTableRowElement>(null);
   useEffect(() => { selectedRow.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }, [selectedDay, tab, chartSelection]);
   const rows = (tab === 'history' ? scenario.history : scenario.future).map((row) => ({ ...row, demand: 'demand' in row ? row.demand as number : undefined }));

@@ -1,3 +1,4 @@
+import { useSavedState } from './journey';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PythonMessage, PythonResult, RunRequest } from './python-types';
 
@@ -7,7 +8,11 @@ type PythonState = {
   result?: PythonResult;
 };
 
-export function usePython() {
+export function usePython(area: string) {
+  const [saved, save] = useSavedState<PythonState>(`${area}.python`);
+  const resumed = useRef(saved?.phase === 'running'
+    ? { phase: 'unavailable' as const, message: 'Run interrupted when the game closed. Reset Python to retry. Your submitted code and prediction are kept.' }
+    : saved && ['complete', 'error', 'unavailable'].includes(saved.phase) ? saved : undefined);
   const [state, setState] = useState<PythonState>({ phase: 'loading', message: 'Loading Python…' });
   const worker = useRef<Worker | null>(null);
   const sequence = useRef(0);
@@ -20,7 +25,9 @@ export function usePython() {
     previous?.terminate();
   }, []);
 
-  const reset = useCallback(() => {
+  const publish = useCallback((next: PythonState) => { setState(next); save(next); }, [save]);
+
+  const start = useCallback((restore?: PythonState) => {
     terminate();
     ++sequence.current;
     setState({ phase: 'loading', message: 'Loading a fresh Python session…' });
@@ -29,7 +36,7 @@ export function usePython() {
     const unavailable = (message: string) => {
       if (worker.current !== instance) return;
       terminate();
-      setState({ phase: 'unavailable', message });
+      publish({ phase: 'unavailable', message });
     };
     timeout.current = setTimeout(() => unavailable('Python took too long to load. Reset Python to try again.'), 120_000);
     instance.onerror = () => unavailable('Python stopped unexpectedly. Reset Python to try again.');
@@ -43,37 +50,42 @@ export function usePython() {
         return;
       }
       clearTimeout(timeout.current);
-      if (data.type === 'ready') setState({ phase: 'ready', message: 'Python is ready' });
-      if (data.type === 'result') setState({ phase: 'complete', message: 'Forecast ready', result: data });
+      if (data.type === 'ready') publish(restore ?? { phase: 'ready', message: 'Python is ready' });
+      if (data.type === 'result') publish({ phase: 'complete', message: 'Forecast ready', result: data });
       if (data.type === 'error') {
         if (data.id === undefined) unavailable(`${data.message}\nReset Python to try again.`);
-        else setState({ phase: 'error', message: data.message });
+        else publish({ phase: 'error', message: data.message });
       }
     };
-  }, [terminate]);
+  }, [terminate, publish]);
+
+  const reset = useCallback(() => {
+    save({ phase: 'loading', message: 'Loading a fresh Python session...' });
+    start();
+  }, [save, start]);
 
   useEffect(() => {
-    reset();
+    start(resumed.current);
     return terminate;
-  }, [reset, terminate]);
+  }, [start, terminate]);
 
   function stop() {
     if (state.phase !== 'running') return;
     terminate();
     ++sequence.current;
-    setState({ phase: 'unavailable', message: 'Run stopped. Reset Python to start a fresh session. Your code and prediction are kept.' });
+    publish({ phase: 'unavailable', message: 'Run stopped. Reset Python to start a fresh session. Your code and prediction are kept.' });
   }
 
   function run(request: Omit<RunRequest, 'id'>) {
     const instance = worker.current;
     if (!instance || ['loading', 'running', 'unavailable'].includes(state.phase)) return;
     const id = ++sequence.current;
-    setState({ phase: 'running', message: 'Training your model…' });
+    publish({ phase: 'running', message: 'Training your model…' });
     instance.postMessage({ ...request, id });
     timeout.current = setTimeout(() => {
       if (worker.current !== instance || sequence.current !== id) return;
       terminate();
-      setState({ phase: 'unavailable', message: 'This run took too long and was stopped. Reset Python to start a fresh session. Your code and prediction are kept.' });
+      publish({ phase: 'unavailable', message: 'This run took too long and was stopped. Reset Python to start a fresh session. Your code and prediction are kept.' });
     }, 60_000);
   }
 

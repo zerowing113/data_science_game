@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useSavedState } from './journey';
+import { useEffect } from 'react';
 import { scoreEvaluation } from './evaluation';
 import { missingDataDates, missingDataFixture, missingDataStarter, preparationLabels, type MissingDataAttempt, type PreparationChoice } from './missing-data';
 import { usePython } from './use-python';
@@ -10,12 +11,12 @@ type Submitted = Pick<MissingDataAttempt, 'number' | 'code' | 'expectation' | 'c
 export function MissingDataLesson() {
   const mission = useMission();
   const starter = (choice: PreparationChoice) => missingDataStarter(choice, mission.state.active);
-  const python = usePython();
-  const [choice, setChoice] = useState<PreparationChoice>('untreated');
-  const [code, setCode] = useState(missingDataStarter('untreated'));
-  const [expectation, setExpectation] = useState('');
-  const [submitted, setSubmitted] = useState<Submitted>();
-  const [records, setRecords] = useState<MissingDataAttempt[]>([]);
+  const python = usePython('missing');
+  const [choice, setChoice] = useSavedState<PreparationChoice>('missing.choice', 'untreated');
+  const [code, setCode] = useSavedState('missing.code', missingDataStarter('untreated'));
+  const [expectation, setExpectation] = useSavedState('missing.expectation', '');
+  const [submitted, setSubmitted] = useSavedState<Submitted>('missing.submitted');
+  const [records, setRecords] = useSavedState<MissingDataAttempt[]>('missing.records', []);
   usePracticeAttempt('repair', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const observedFailure = records.some((record) => record.status === 'failed');
@@ -60,7 +61,7 @@ export function MissingDataLesson() {
     <p className="code-help">Edit the preparation and train a real model. Return a pandas Series named predictions indexed by future.index. The supported repair starter learns fill values from training only; custom code is not automatically audited for imputation leakage.</p>
     <div className="editor"><textarea id="missing-data-code" spellCheck={false} value={code} disabled={python.phase === 'running'} onChange={(event) => setCode(event.target.value)} /></div>
     <div className="run-bar"><span role="status">{python.phase === 'error' ? 'Missing-data experiment failed' : python.phase === 'complete' ? 'Missing-data experiment complete' : python.message}</span><button className="run-button" disabled={busy || python.phase === 'unavailable' || !code.trim() || !expectation.trim()} onClick={run}>Run missing-data experiment</button></div>
-    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop missing-data run</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={reset}>Reset missing-data Python</button><span>Saved attempts stay until this page is reloaded.</span></div>
+    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop missing-data run</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={reset}>Reset missing-data Python</button><span>Attempts save automatically in this browser.</span></div>
     {(python.phase === 'error' || python.phase === 'unavailable') && <div className="error-box" role="alert"><strong>No new forecast or score.</strong><pre>{python.message}</pre></div>}
     {observedFailure && <details className="missing-explanation"><summary>Why did this fail?</summary><p>The untreated starter passes missing values (NaN) into LinearRegression, which cannot train on them. Inspect the saved error: edited code can also fail for other reasons.</p><p>Fit the imputer on training rows only, then reuse its learned values on evaluation inputs. Fitting on later inputs would leak information from the period you are evaluating.</p><p>A median repair makes this starter runnable; it does not recover the true missing day. Compare the repaired prediction against actual demand. You can also investigate deriving the missing day number from the intact date.</p></details>}
     <h3>Before and after</h3><p>Both attempts retain their original code, expectation, preparation choice, and dates. A failure has no forecast or score. Baseline repeats the last training demand, 60 mugs; MAE averages absolute errors over the same seven evaluation dates.</p>

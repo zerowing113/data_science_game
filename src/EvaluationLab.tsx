@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { ExperimentHistory, useExperimentHistory } from './ExperimentHistory';
+import { useSavedState } from './journey';
+import { useEffect } from 'react';
 import { evaluationSplit, evaluationStarter, scoreEvaluation, type TrainingDays } from './evaluation';
 import { featureLine, starterFeaturesAssignment, type FeatureChoice } from './scenario';
 import type { PythonResult } from './python-types';
@@ -16,13 +18,14 @@ function SplitDates({ trainingDays }: { trainingDays: TrainingDays }) {
 
 export function EvaluationLab() {
   const mission = useMission();
-  const python = usePython();
-  const [trainingDays, setTrainingDays] = useState<TrainingDays>(21);
-  const [choice, setChoice] = useState<FeatureChoice>('trend');
-  const [code, setCode] = useState(evaluationStarter('trend'));
-  const [expectation, setExpectation] = useState('');
-  const [submitted, setSubmitted] = useState<Attempt>();
-  const [runs, setRuns] = useState<EvaluationRecord[]>([]);
+  const python = usePython('evaluation');
+  const [trainingDays, setTrainingDays] = useSavedState<TrainingDays>('evaluation.trainingDays', 21);
+  const [choice, setChoice] = useSavedState<FeatureChoice>('evaluation.choice', 'trend');
+  const [code, setCode] = useSavedState('evaluation.code', evaluationStarter('trend'));
+  const [expectation, setExpectation] = useSavedState('evaluation.expectation', '');
+  const [submitted, setSubmitted] = useSavedState<Attempt>('evaluation.submitted');
+  const [runs, setRuns] = useSavedState<EvaluationRecord[]>('evaluation.runs', []);
+  const history = useExperimentHistory('evaluation', submitted, python);
   usePracticeAttempt('evaluate', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const split = evaluationSplit(trainingDays);
@@ -52,9 +55,10 @@ export function EvaluationLab() {
     <p className="code-help">Use history for training and future for evaluation inputs. Return a pandas Series named predictions, indexed by future.index, with one finite, non-negative value per date. Date order is checked before scoring.</p>
     <div className="editor"><textarea id="evaluation-code" spellCheck={false} value={code} disabled={python.phase === 'running'} onChange={(event) => setCode(event.target.value)} /></div>
     <div className="run-bar"><span role="status">{python.phase === 'complete' ? 'Comparison complete' : python.phase === 'error' ? 'Comparison failed — check the error below' : python.phase === 'unavailable' ? 'Evaluation Python unavailable' : python.message}</span><button className="run-button" disabled={busy || python.phase === 'unavailable' || !code.trim() || !expectation.trim()} onClick={run}>Run comparison</button></div>
-    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop comparison</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={python.reset}>Reset evaluation Python</button><span>Code, expectation, and saved evaluations stay in this page.</span></div>
+    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop comparison</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={() => { history.interrupt(); python.reset(); }}>Reset evaluation Python</button><span>Code, expectation, and saved evaluations stay in this page.</span></div>
     {(python.phase === 'error' || python.phase === 'unavailable') && <div className="error-box" role="alert"><strong>Comparison unavailable. No score was saved for this attempt.</strong><pre>{python.message}</pre><p>Correct your code or reset Python. Saved evaluations below belong to their original runs.</p></div>}
-    <h3>Saved evaluations</h3><p>Results keep their original settings and dates. Changing the editor or split does not change a saved run. Records last until this page is reloaded.</p>
+    <ExperimentHistory area="evaluation" records={history.records} />
+    <h3>Saved evaluations</h3><p>Results keep their original settings and dates. Changing the editor or split does not change a saved run. Records save automatically in this browser.</p>
     {new Set(runs.map((record) => record.trainingDays)).size > 1 && <p className="inline-note">Different evaluation dates: compare scores only within the same split.</p>}
     {runs.length > 0 && <div className="evaluation-table-scroll"><table className="forecast-table"><caption>Experiment comparison</caption><thead><tr><th scope="col">Run</th><th scope="col">Training days</th><th scope="col">Evaluation dates</th><th scope="col">Visual choice</th><th scope="col">Baseline MAE</th><th scope="col">Model MAE</th></tr></thead><tbody>{runs.map((record) => <tr key={record.number}><th scope="row">{record.number}</th><td>{record.trainingDays}</td><td>{record.rows[0].date} – {record.rows[record.rows.length - 1].date}</td><td>{record.choice === 'trend' ? 'Trend only' : 'Trend + promotions'}</td><td>{record.baselineMae.toFixed(2)}</td><td>{record.modelMae.toFixed(2)}</td></tr>)}</tbody></table></div>}
     {runs.length === 0 && <p>No successful comparisons yet.</p>}

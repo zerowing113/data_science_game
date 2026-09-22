@@ -48,6 +48,7 @@ test('guided practice requires inspection and real results while hints and error
 });
 
 test('the complete practice journey fades scaffolding and preserves inspected evidence across revisits', async ({ page }) => {
+  test.setTimeout(300_000);
   await page.goto('/');
   await page.getByRole('button', { name: 'Start guided practice', exact: true }).click();
   const guide = page.getByRole('region', { name: 'Practice mission' });
@@ -129,6 +130,7 @@ test('the complete practice journey fades scaffolding and preserves inspected ev
   await stock.getByRole('button', { name: 'Advance shop and reveal demand', exact: true }).click();
   await expect(guide).not.toContainText('Practice journey complete');
   await stock.getByRole('button', { name: 'I inspected stocking decision 1', exact: true }).click();
+  await page.reload();
   await expect(guide).toContainText('6 of 6 steps inspected');
   await expect(guide).toContainText('Practice journey complete');
   await expect(guide).toContainText('does not award a final win');

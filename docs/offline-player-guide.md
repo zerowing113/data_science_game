@@ -12,7 +12,13 @@ Python loads from the bundled files the first time you enter a workspace. It can
 
 Use **Stop game** at the top of the page to stop the local launcher. Closing a browser tab alone leaves the launcher running; opening Start Game again reconnects to it. Stop game closes the local service for all its tabs. If the tab is unavailable, end Little Goods / Start Game in Task Manager (Windows) or Activity Monitor (Mac).
 
-**Progress is not saved in this test build.** Refreshing, closing, or stopping loses the current session. Automatic save/resume is still being implemented under ticket #12.
+**Progress saves automatically in this browser profile.** Reopen the game in the same browser to resume code, experiments, practice progress, stocking decisions, final answers, and reflections. Running Python is interrupted when the page closes; reset Python to retry it. A previously revealed challenge stays revealed. Use **Try a fresh challenge** for new data.
+
+Use **Start over** and confirm deletion to clear this browser's journey. Cancelling keeps it. If saving fails, the page warns you: keep the tab open, download a backup, and retry saving after restoring browser storage. An unreadable or incompatible save stays untouched and can be downloaded before you decide to delete it. Backups are recovery files for the maintainer; this version does not offer an import button.
+
+Saves stay at the game's local address in this browser profile. Changing browser, computer, profile, or port uses separate storage. Private browsing and clearing site data can erase progress. Keep one game tab open at a time: a second tab asks you to continue in the active tab, or close it and reload to resume. If an older game version changes the save, download your current work and reload rather than overwrite it. No cloud sync or account is used.
+
+The published `offline-v0.1.0-preview.1` predates this feature and still loses progress. Use a build that includes ticket #12.
 
 If another program is using the game's local port, the launcher explains the conflict. Close that program and try again. An older Little Goods version must be stopped before opening a new version. Startup problems show a native message rather than an invisible failure.
 

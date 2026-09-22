@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useSavedState } from './journey';
+import { useEffect } from 'react';
 import { approvedFinalPrograms, emptyReflection, finalChallenge, finalFeatures, finalStarter, reflectionComplete, scoreFinal, type FinalAttempt, type FinalChoice, type FinalReflection } from './challenge';
 import { useMission, type PracticeEvidence } from './mission';
 import { money, shopRules, validStock } from './shop';
@@ -12,17 +13,17 @@ type Submission = ReturnType<typeof scoreFinal> & {
 
 export function FinalChallenge({ onBack }: { onBack: () => void }) {
   const mission = useMission();
-  const python = usePython();
-  const [seed, setSeed] = useState(1);
+  const python = usePython('final');
+  const [seed, setSeed] = useSavedState('final.seed', 1);
   const challenge = finalChallenge(seed);
-  const [choice, setChoice] = useState<FinalChoice>('trend');
-  const [code, setCode] = useState(finalStarter('trend'));
-  const [expectation, setExpectation] = useState('');
-  const [attempts, setAttempts] = useState<FinalAttempt[]>([]);
-  const pending = useRef<FinalAttempt | undefined>(undefined);
-  const [preview, setPreview] = useState<FinalAttempt>();
-  const [stock, setStock] = useState<string[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [choice, setChoice] = useSavedState<FinalChoice>('final.choice', 'trend');
+  const [code, setCode] = useSavedState('final.code', finalStarter('trend'));
+  const [expectation, setExpectation] = useSavedState('final.expectation', '');
+  const [attempts, setAttempts] = useSavedState<FinalAttempt[]>('final.attempts', []);
+  const [pending, setPending] = useSavedState<FinalAttempt>('final.pending');
+  const [preview, setPreview] = useSavedState<FinalAttempt>('final.preview');
+  const [stock, setStock] = useSavedState<string[]>('final.stock', []);
+  const [submissions, setSubmissions] = useSavedState<Submission[]>('final.submissions', []);
   const current = submissions.find((item) => item.seed === seed);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const dirty = preview && (code !== preview.code || choice !== preview.choice || expectation.trim() !== preview.expectation);
@@ -30,9 +31,9 @@ export function FinalChallenge({ onBack }: { onBack: () => void }) {
   const canSubmit = !current && !busy && preview?.result && !dirty && validStock(quantities, challenge.future.length);
 
   useEffect(() => {
-    const source = pending.current;
+    const source = pending;
     if (!source || !['complete', 'error', 'unavailable'].includes(python.phase)) return;
-    pending.current = undefined;
+    setPending(undefined);
     const attempt = { ...source, ...(python.result ? { result: python.result } : { error: python.message }) };
     setAttempts((previous) => [...previous, attempt]);
     setPreview(python.result ? attempt : undefined);
@@ -41,17 +42,17 @@ export function FinalChallenge({ onBack }: { onBack: () => void }) {
 
   function run() {
     if (current || busy || python.phase === 'unavailable' || !expectation.trim() || !code.trim()) return;
-    pending.current = { number: attempts.length + 1, code, choice, expectation: expectation.trim() };
+    setPending({ number: attempts.length + 1, code, choice, expectation: expectation.trim() });
     setPreview(undefined);
     setStock([]);
     python.run({ code, scenario: { history: challenge.history, future: challenge.future }, evaluationDates: challenge.future.map((row) => row.date), approvedPrograms: approvedFinalPrograms });
   }
 
   function reset() {
-    const source = pending.current;
+    const source = pending;
     if (source) {
       setAttempts((previous) => [...previous, { ...source, error: 'Run interrupted by reset.' }]);
-      pending.current = undefined;
+      setPending(undefined);
     }
     setPreview(undefined);
     setStock([]);
@@ -81,7 +82,7 @@ export function FinalChallenge({ onBack }: { onBack: () => void }) {
 
   return <section className="final-challenge" aria-label="Final challenge">
     <div className="section-heading"><div><span className="eyebrow">TRANSFER YOUR LEARNING</span><h2>Challenge {seed}: the festival sale</h2></div><button className="text-button" onClick={onBack}>Back to practice</button></div>
-    <p>A new batch of Everyday Mugs, 21 earlier training days, and a planned seven-day sale. Forecast demand for {challenge.future[0].date} through {challenge.future[6].date}. Challenge number {seed} reproduces this dataset. Progress stays in this page until reload.</p>
+    <p>A new batch of Everyday Mugs, 21 earlier training days, and a planned seven-day sale. Forecast demand for {challenge.future[0].date} through {challenge.future[6].date}. Challenge number {seed} reproduces this dataset. Progress saves automatically in this browser.</p>
     <p>Beat the last training day's demand baseline on the same seven future dates, use valid forecast-time inputs, commit stock, and explain your decisions to complete the mission. Profit alone does not qualify.</p>
     <details><summary>Inspect final training data and available inputs</summary>
       <p>day and promotion are known before forecasting. demand and closing_requested_units are known only after closing; both are absent from future. Train only on history. The chronological split is fixed.</p>

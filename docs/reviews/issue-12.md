@@ -1,0 +1,23 @@
+# Ticket 12: save and resume one local journey
+
+Baseline: `56744a3`. Scope: the local save/resume implementation against GitHub issue #12 and ADR 0002. Historical planning files already present in the working directory are outside this commit.
+
+## Standards
+
+Independent review found that a malformed saved seven-day forecast with fourteen predictions could pass validation and crash rendering. A browser regression reproduced the failure. Contextual prediction and row-length validation now rejects it, retains the original backup, and allows confirmed recovery. Follow-up review found no remaining documented violations or actionable code smells.
+
+## Spec
+
+Independent review found no remaining missing requirements or scope creep. The reviewer noted that comparing localStorage before writing did not serialize simultaneous tabs. The implementation now holds a Web Lock for the active document: another tab cannot edit or delete the journey, and can resume after the active tab closes. A browser check verifies that handoff.
+
+## Repairs and verification
+
+The existing partial-write regression reproduced a new run source being paired with an old result when storage filled between writes. Related synchronous updates now persist together in one atomic storage write. A second browser regression reproduced lost interruption evidence on Reset Python; forecast and evaluation histories now explicitly retain that attempt before resetting. Both regressions passed after repair.
+
+TypeScript checking and production build pass. A new Windows archive was built and extracted with manifest verification. The launcher checks, empty-browser offline real-Python smoke test, and same-profile browser/launcher process restart check pass. The restart preserves original code, feature choice, expectation, and the real computed forecast with external networking unavailable.
+
+Final verification on September 22, 2026: all 42 browser tests passed against the extracted Windows package with external networking blocked (8.7 minutes), including all 12 persistence tests and the complete guided mission. The three launcher tests, one offline smoke test, and one full process-restart test also passed. During focused testing, overlapping Playwright commands shared the trace output directory and caused an artifact-cleanup failure; final package checks run sequentially.
+
+## Release boundary
+
+The local Windows archive is a working-tree verification build, not a published release. The published preview.1 still predates persistence. The native CI workflow now includes persistence and process-restart checks on all three targets, but those new checks have not been run on macOS in this session. Normal Explorer/Finder launch, disconnected-device acceptance, and the learner playtest remain #10/#11 work.

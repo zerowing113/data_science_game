@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { ExperimentHistory, useExperimentHistory } from './ExperimentHistory';
+import { useSavedState, JourneyProvider } from './journey';
+import { useEffect } from 'react';
 import { MissionProvider, useMission, usePracticeAttempt, practiceSteps } from './mission';
 import { MissionGuide } from './MissionGuide';
 import { FinalChallenge } from './FinalChallenge';
@@ -14,24 +16,25 @@ import { usePython } from './use-python';
 
 type SubmittedRun = { number: number; code: string; expectation: string; choice: FeatureChoice };
 
-export default function App() { return <OfflineSession><MissionProvider><Workspace /></MissionProvider></OfflineSession>; }
+export default function App() { return <JourneyProvider><OfflineSession><MissionProvider><Workspace /></MissionProvider></OfflineSession></JourneyProvider>; }
 
 function Workspace() {
   const mission = useMission();
-  const [finalOpen, setFinalOpen] = useState(false);
-  const [finalStarted, setFinalStarted] = useState(false);
+  const [finalOpen, setFinalOpen] = useSavedState('workspace.finalOpen', false);
+  const [finalStarted, setFinalStarted] = useSavedState('workspace.finalStarted', false);
   const openFinal = () => { setFinalStarted(true); setFinalOpen(true); };
   const visible = (step: string) => !finalOpen && (!mission.state.active || mission.step === step);
   const reached = (step: typeof practiceSteps[number]) => practiceSteps.indexOf(step) <= Object.keys(mission.state.evidence).length;
-  const [choice, setChoice] = useState<FeatureChoice>('trend');
-  const [code, setCode] = useState(starterCode('trend'));
-  const [expectation, setExpectation] = useState('');
-  const [submitted, setSubmitted] = useState<SubmittedRun>();
-  const [previous, setPrevious] = useState<ForecastExperiment>();
-  const [evaluationOpen, setEvaluationOpen] = useState(false);
-  const [missingDataOpen, setMissingDataOpen] = useState(false);
-  const [leakageOpen, setLeakageOpen] = useState(false);
-  const python = usePython();
+  const [choice, setChoice] = useSavedState<FeatureChoice>('forecast.choice', 'trend');
+  const [code, setCode] = useSavedState('forecast.code', starterCode('trend'));
+  const [expectation, setExpectation] = useSavedState('forecast.expectation', '');
+  const [submitted, setSubmitted] = useSavedState<SubmittedRun>('forecast.submitted');
+  const [previous, setPrevious] = useSavedState<ForecastExperiment>('forecast.previous');
+  const [evaluationOpen, setEvaluationOpen] = useSavedState('workspace.evaluationOpen', false);
+  const [missingDataOpen, setMissingDataOpen] = useSavedState('workspace.missingDataOpen', false);
+  const [leakageOpen, setLeakageOpen] = useSavedState('workspace.leakageOpen', false);
+  const python = usePython('forecast');
+  const history = useExperimentHistory('forecast', submitted, python);
   usePracticeAttempt('forecast', python.phase, submitted !== undefined);
   const busy = python.phase === 'loading' || python.phase === 'running';
   const dirty = submitted !== undefined && submitted.code !== code;
@@ -91,7 +94,7 @@ function Workspace() {
             <div className="run-bar"><div role="status" aria-live="polite" className={`runtime-status ${python.phase}`}><span className={busy ? 'status-spinner' : 'status-dot'} aria-hidden="true" />{python.phase === 'error' ? 'Forecast failed — check the error below' : python.phase === 'unavailable' ? 'Python unavailable' : python.message}</div><button className="run-button" disabled={busy || python.phase === 'unavailable' || !expectation.trim() || !code.trim()} onClick={run}>{python.phase === 'running' ? 'Training…' : 'Run forecast'}<span aria-hidden="true">▶</span></button></div>
             <div className="recovery-controls">
               {python.phase === 'running' && <button className="secondary-button" onClick={python.stop}>Stop run</button>}
-              <button className="text-button" disabled={python.phase === 'loading'} onClick={python.reset}>Reset Python</button>
+              <button className="text-button" disabled={python.phase === 'loading'} onClick={() => { history.interrupt(); python.reset(); }}>Reset Python</button>
               <span>Reset starts a fresh session and keeps your code and prediction.</span>
             </div>
             {!expectation.trim() && <p className="run-hint">Write your prediction to unlock Run forecast.</p>}
@@ -114,6 +117,7 @@ function Workspace() {
               {previous.output && <details className="python-output"><summary>Saved output · run {previous.number}</summary><pre>{previous.output}</pre></details>}
             </details>}
           </section>
+          <ExperimentHistory area="forecast" records={history.records} />
           {mission.state.active && python.result && submitted && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'forecast', record: { ...submitted, ...python.result! } } })}>I inspected forecast run {submitted.number}</button>}
           </div>
           <div className="practice-panel" hidden={!visible("stock")}><StockingDesk forecast={previous} /></div>

@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useReducer, type ReactNode } from 'react';
+import { useSavedState } from './journey';
+import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
 import type { EvaluationRecord } from './EvaluationLab';
 import type { MissingDataAttempt } from './missing-data';
 import type { LeakageExperiment } from './leakage';
@@ -53,8 +54,9 @@ const MissionContext = createContext<{
 } | null>(null);
 
 export function MissionProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(progress, { active: false, current: 0, evidence: {}, observed: {}, hints: {} });
-  const observe = useCallback((step: PracticeStep) => dispatch({ type: 'observe', step }), []);
+  const [state, setState] = useSavedState<PracticeState>('mission', { active: false, current: 0, evidence: {}, observed: {}, hints: {} });
+  const dispatch = useCallback((action: Action) => setState((previous) => progress(previous, action)), [setState]);
+  const observe = useCallback((step: PracticeStep) => dispatch({ type: 'observe', step }), [dispatch]);
   return <MissionContext.Provider value={{ state, dispatch, observe }}>{children}</MissionContext.Provider>;
 }
 

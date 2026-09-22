@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useSavedState } from './journey';
+import { useEffect } from 'react';
 import { evaluationSplit, scoreEvaluation } from './evaluation';
 import { approvedTimingPrograms, leakageForecast, leakageScenario, leakageStarter, timingAssignment, timingFeatures, type FailedTimingAttempt, type LeakageAttempt, type LeakageExperiment, type TimingChoice } from './leakage';
 import { scenario } from './scenario';
@@ -9,14 +10,14 @@ import './leakage.css';
 
 export function LeakageLesson() {
   const mission = useMission();
-  const [repairStage, setRepairStage] = useState(false);
-  const python = usePython();
-  const [choice, setChoice] = useState<TimingChoice>('closing');
-  const [code, setCode] = useState(leakageStarter('closing'));
-  const [expectation, setExpectation] = useState('');
-  const [submitted, setSubmitted] = useState<LeakageAttempt>();
-  const [runs, setRuns] = useState<LeakageExperiment[]>([]);
-  const [failures, setFailures] = useState<FailedTimingAttempt[]>([]);
+  const [repairStage, setRepairStage] = useSavedState('timing.repairStage', false);
+  const python = usePython('timing');
+  const [choice, setChoice] = useSavedState<TimingChoice>('timing.choice', 'closing');
+  const [code, setCode] = useSavedState('timing.code', leakageStarter('closing'));
+  const [expectation, setExpectation] = useSavedState('timing.expectation', '');
+  const [submitted, setSubmitted] = useSavedState<LeakageAttempt>('timing.submitted');
+  const [runs, setRuns] = useSavedState<LeakageExperiment[]>('timing.runs', []);
+  const [failures, setFailures] = useSavedState<FailedTimingAttempt[]>('timing.failures', []);
   usePracticeAttempt('timing', python.phase, submitted !== undefined);
   const hasConsequence = runs.some((record) => record.leakageCheck.validity === 'leaked' || record.leakageCheck.forecastError);
   const busy = python.phase === 'loading' || python.phase === 'running';
@@ -59,7 +60,7 @@ export function LeakageLesson() {
     <div className="editor"><textarea id="leakage-code" spellCheck={false} value={code} disabled={python.phase === 'running'} onChange={(event) => setCode(event.target.value)} /></div>
     <p className="code-help">Return a pandas Series named predictions with future.index. Timing verification supports this LinearRegression recipe with closing_requested_units, day, or day + promotion. Comments and formatting may change. Other custom programs still execute, but remain unverified.</p>
     <div className="run-bar"><span role="status">{python.phase === 'complete' ? 'Timing experiment complete' : python.message}</span><button className="run-button" disabled={busy || python.phase === 'unavailable' || !code.trim() || !expectation.trim()} onClick={run}>Run timing experiment</button></div>
-    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop timing experiment</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={reset}>Reset timing Python</button><span>Saved experiments remain until page reload.</span></div>
+    <div className="recovery-controls">{python.phase === 'running' && <button onClick={python.stop}>Stop timing experiment</button>}<button className="text-button" disabled={python.phase === 'loading'} onClick={reset}>Reset timing Python</button><span>Experiments save automatically in this browser.</span></div>
     {(python.phase === 'error' || python.phase === 'unavailable') && <div className="error-box" role="alert"><strong>Attempt unverified. No new historical score or valid result was saved.</strong><pre>{python.message}</pre></div>}
     <h3>Saved timing experiments</h3>
     <p>Validity is retained with each experiment. Leaked and unverified runs cannot qualify as valid winning forecasts. A valid timing check alone does not complete a mission or prove accuracy on unseen demand.</p>
