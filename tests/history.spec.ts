@@ -43,7 +43,9 @@ test('selecting a historical row or chart point links the same observation in bo
   await expect(point).toHaveAttribute('aria-pressed', 'false');
   const scroll = viewer.getByRole('tabpanel').getByLabel('Scrollable scenario records');
   await scroll.focus();
-  await page.keyboard.press('Control+Home');
+  // Home scrolls the focused region on Windows and macOS; Control+Home is
+  // platform-specific and leaves this region unchanged on macOS Chromium.
+  await page.keyboard.press('Home');
   // Keyboard scrolling animates; finish that user action before selecting again.
   await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(0);
   await expect(lastDate).not.toBeInViewport();
