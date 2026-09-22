@@ -1,6 +1,8 @@
 import { ExperimentHistory, useExperimentHistory } from './ExperimentHistory';
 import { useSavedState } from './journey';
 import { useEffect } from 'react';
+import { EvaluationTimeline } from './EvaluationTimeline';
+import { EvaluationVisual } from './EvaluationVisual';
 import { evaluationSplit, evaluationStarter, scoreEvaluation, type TrainingDays } from './evaluation';
 import { featureLine, starterFeaturesAssignment, type FeatureChoice } from './scenario';
 import type { PythonResult } from './python-types';
@@ -46,6 +48,7 @@ export function EvaluationLab() {
     <p>Practice forecasting days we have already observed. Train only on earlier days and evaluate on later days, so the starter learns without seeing the evaluation answers. This is a historical holdout, separate from your upcoming-week forecast.</p>
     <label>Chronological split <select value={trainingDays} disabled={python.phase === 'running'} onChange={(event) => setTrainingDays(Number(event.target.value) as TrainingDays)}><option value={21}>21 training days / 7 evaluation days</option><option value={14}>14 training days / 14 evaluation days</option></select></label>
     <SplitDates trainingDays={trainingDays} />
+    <EvaluationTimeline trainingDays={trainingDays} label="Planned evaluation split" />
     <p><strong>Baseline: repeat the last observed demand.</strong> Predict {split.baseline} mugs on every evaluation day. It uses only the last training day; both forecasts are scored on exactly the same later dates.</p>
     <p>Mean absolute error (MAE) is the average distance between predicted and actual demand, in mugs per day. Lower is better. A score is historical evidence, not a guarantee about next week.</p>
     <label>Evaluation features <select value={choice} disabled={python.phase === 'running'} onChange={(event) => { const next = event.target.value as FeatureChoice; setChoice(next); setCode((current) => current.replace(starterFeaturesAssignment, featureLine(next))); }}><option value="trend">Trend only</option><option value="promotions">Trend + promotions</option></select></label>
@@ -64,6 +67,11 @@ export function EvaluationLab() {
     {runs.length === 0 && <p>No successful comparisons yet.</p>}
     {runs.map((record) => <article className="evaluation-record" key={record.number} aria-label={`Evaluation run ${record.number}`}>
       <h3>Evaluation run {record.number}</h3><SplitDates trainingDays={record.trainingDays} />
+      <EvaluationVisual record={record} status={submitted?.number !== record.number || python.phase !== 'complete'
+        ? `Saved run ${record.number}, not the current attempt. Its original results remain available.`
+        : record.code !== code || record.trainingDays !== trainingDays
+          ? 'Draft changed. This chart still belongs to the saved code and split; run again for a new comparison.'
+          : `Completed run ${record.number}. Predictions and errors belong to this saved Python execution.`} />
       <p><strong>Baseline MAE: {record.baselineMae.toFixed(2)} mugs/day</strong><br /><strong>Model MAE: {record.modelMae.toFixed(2)} mugs/day</strong></p>
       <p>{record.modelMae < record.baselineMae ? 'Model beats the baseline on these evaluation days.' : 'Model does not beat the baseline on these evaluation days.'}</p>
       <p>Visual choice: {record.choice === 'trend' ? 'Trend only' : 'Trend + promotions'}. Recorded features: <code>{record.features}</code>. For custom code, inspect the saved Python to see how predictions were made.</p>
