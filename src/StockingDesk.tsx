@@ -1,15 +1,19 @@
 import { useSavedState } from './journey';
+import { useState } from 'react';
+import { ShopPlayback } from './ShopPlayback';
 import { useMission } from './mission';
-import { scenario } from './scenario';
+import { dayLabel, scenario } from './scenario';
 import { advanceShop, money, shopRules, validStock, type ForecastExperiment, type StockingDecision } from './shop';
 import './stocking.css';
 
-export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
+export function StockingDesk({ forecast, active }: { forecast?: ForecastExperiment; active: boolean }) {
   const mission = useMission();
   const [selected, setSelected] = useSavedState<ForecastExperiment>('stock.selected');
   const [draft, setDraft] = useSavedState<string[]>('stock.draft', []);
   const [committed, setCommitted] = useSavedState('stock.committed', false);
   const [decisions, setDecisions] = useSavedState<StockingDecision[]>('stock.decisions', []);
+  const [playback, setPlayback] = useState<{ number: number; autoPlay: boolean }>();
+  const viewedDecision = decisions.find((decision) => decision.number === playback?.number) ?? decisions.at(-1);
   const stock = draft.map((value) => value.trim() === '' ? NaN : Number(value));
   const valid = validStock(stock);
 
@@ -25,6 +29,7 @@ export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
     const outcome = advanceShop(stock);
     setDecisions((previous) => [...previous, { ...outcome, number: previous.length + 1, experiment: selected, replay: previous.length > 0 }]);
     setCommitted(true);
+    setPlayback({ number: decisions.length + 1, autoPlay: true });
     mission.observe('stock');
   }
 
@@ -38,11 +43,22 @@ export function StockingDesk({ forecast }: { forecast?: ForecastExperiment }) {
       <h3>Planning from forecast run {selected.number}</h3>
       <p>Stock suggestions round that saved forecast to the nearest whole mug. Edit any quantity before committing. Editor changes or a new forecast do not silently change this plan.</p>
       {forecast && forecast.number !== selected.number && <p className="inline-note">A newer forecast is available. Select it above to replace this draft; this plan still uses run {selected.number}.</p>}
-      <div className="stock-table-scroll" tabIndex={0} role="region" aria-label="Stock plan table"><table className="forecast-table"><caption>Daily stock plan · forecast run {selected.number}</caption><thead><tr><th scope="col">Date</th><th scope="col">Predicted demand</th><th scope="col">Stock to order</th></tr></thead><tbody>{scenario.future.map((day, index) => <tr key={day.date}><th scope="row">{day.date}</th><td>{selected.predictions[index].toFixed(1)}</td><td><input aria-label={`Stock for ${day.date}`} type="number" min={0} max={shopRules.dailyCapacity} step={1} value={draft[index]} disabled={committed} onChange={(event) => setDraft((current) => current.map((value, position) => position === index ? event.target.value : value))} /></td></tr>)}</tbody></table></div>
+      <div className="stock-plan-days" role="group" aria-label={`Daily stock plan from forecast run ${selected.number}`}>{scenario.future.map((day, index) => <div className="stock-order-card" key={day.date}>
+        <strong>{dayLabel(day.date)}</strong><small>{day.date}</small>
+        <span className="plan-mug" aria-hidden="true">☕</span>
+        <span>{selected.predictions[index].toFixed(1)} predicted</span>
+        <label htmlFor={`stock-${day.date}`}>Mugs to order</label><input id={`stock-${day.date}`} aria-label={`Stock for ${day.date}`} type="number" min={0} max={shopRules.dailyCapacity} step={1} value={draft[index]} disabled={committed} onChange={(event) => setDraft((current) => current.map((value, position) => position === index ? event.target.value : value))} />
+        <small>{day.promotion ? 'Promotion planned' : 'Regular day'}</small>
+      </div>)}</div>
+      {decisions.length === 0 && <p className="stock-hidden-demand">Actual demand stays hidden until you commit all seven daily orders.</p>}
       {!valid && <p className="inline-note">Enter a whole quantity from 0 to {shopRules.dailyCapacity.toLocaleString('en-US')} for every day. Blank, fractional, and negative quantities cannot be committed.</p>}
       {decisions.length > 0 && <p className="inline-note">Demand for this fixed practice week has already been revealed. Further decisions are replays, not unseen forecasting tests. The data explorer keeps the original forecast-time inputs.</p>}
       <div className="recovery-controls"><button className="run-button" disabled={!valid || committed} onClick={advance}>Advance shop and reveal demand</button>{committed && <button className="text-button" onClick={() => setCommitted(false)}>Revise stock for a replay</button>}</div>
     </div>}
+    {viewedDecision && <>
+      {decisions.length > 1 && <label className="playback-picker">View saved decision <select value={viewedDecision.number} onChange={(event) => setPlayback({ number: Number(event.target.value), autoPlay: false })}>{decisions.map((decision) => <option key={decision.number} value={decision.number}>Decision {decision.number} · forecast run {decision.experiment.number}{decision.replay ? ' · revised stock replay' : ''}</option>)}</select></label>}
+      <ShopPlayback key={viewedDecision.number} decision={viewedDecision} autoPlay={playback?.autoPlay ?? false} active={active} />
+    </>}
     {decisions.length > 0 && <div className="stock-table-scroll" tabIndex={0} role="region" aria-label="Compare saved stocking decisions"><table className="forecast-table"><caption>Stocking comparison</caption><thead><tr>{['Decision', 'Forecast run', 'Stock', 'Demand', 'Fulfilled', 'Lost', 'Leftover', 'Profit'].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead><tbody>{decisions.map((decision) => <tr key={decision.number}><th scope="row">{decision.number}{decision.replay ? ' (replay)' : ''}</th><td>{decision.experiment.number}</td><td>{decision.totals.stock}</td><td>{decision.totals.demand}</td><td>{decision.totals.fulfilled}</td><td>{decision.totals.lost}</td><td>{decision.totals.leftover}</td><td>{money(decision.totals.profitCents)}</td></tr>)}</tbody></table></div>}
     {decisions.map((decision) => <article className="stock-outcome" key={decision.number} aria-label={`Stocking decision ${decision.number}`}>
       <h3>Stocking decision {decision.number} · Forecast run {decision.experiment.number}</h3>

@@ -116,7 +116,7 @@ function Workspace() {
           {mission.state.active && python.result && submitted && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'forecast', record: { ...submitted, ...python.result! } } })}>I inspected forecast run {submitted.number}</button>}
           </div>
           </div>
-          <div className="practice-panel" hidden={!visible("stock")}><StockingDesk forecast={previous} /></div>
+          <div className="practice-panel" hidden={!visible("stock")}><StockingDesk forecast={previous} active={visible("stock")} /></div>
           <div className="practice-panel" hidden={!visible("evaluate")} >{evaluationOpen || reached("evaluate") ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}
           </div>
           <div className="practice-panel" hidden={!visible("repair")} >{missingDataOpen || reached("repair") ? <MissingDataLesson /> : <section className="results-card"><h2>What if the data is incomplete?</h2><p>Inspect missing values, try a preparation choice, and compare the evidence from your runs.</p><button className="run-button" onClick={() => setMissingDataOpen(true)}>Open missing-data lesson</button></section>}
