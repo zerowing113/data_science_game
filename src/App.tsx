@@ -6,6 +6,7 @@ import { MissionGuide } from './MissionGuide';
 import { FinalChallenge } from './FinalChallenge';
 import { OfflineSession } from './OfflineSession';
 import { DemandHistory } from './DemandHistory';
+import { ShopScene } from './ShopScene';
 import { EvaluationLab } from './EvaluationLab';
 import { MissingDataLesson } from './MissingDataLesson';
 import { LeakageLesson } from './LeakageLesson';
@@ -65,20 +66,14 @@ function Workspace() {
       <div hidden={finalOpen}><MissionGuide onOpenFinal={openFinal} /></div>
       {finalStarted && <div hidden={!finalOpen}><FinalChallenge onBack={() => setFinalOpen(false)} /></div>}
       <div className="workspace" hidden={finalOpen}>
-        <aside className="shop-column">
-          <section className="shop-card" aria-labelledby="shop-title">
-            <div className="shop-card-top"><span className="eyebrow">YOUR SHOP</span><span className="open-tag">OPEN FOR BUSINESS</span></div>
-            <h2 id="shop-title">Little Goods Co.</h2>
-            <p>Everyday objects, a little better.</p>
-            <div className="product-display"><span className="product-number">BESTSELLER / 001</span><span className="mug" role="img" aria-label="Ceramic coffee mug">☕</span><span className="product-sticker">GOOD<br />MORNINGS</span></div>
-            <div className="product-caption"><strong>The Everyday Mug</strong><span>Ceramic · Oat</span></div>
-            <div className="shop-facts"><div><span>History</span><strong>28 days</strong></div><div><span>Forecast horizon</span><strong>Next 7 days</strong></div></div>
-          </section>
-          <section className="brief"><span className="eyebrow">A NOTE FROM THE OWNER</span><h2>Help us see what's coming.</h2><p>Our mug orders are growing. We have promotions planned for Friday and Saturday next week.</p><p>Train a model on the last 28 days to predict how many mugs customers will want each day.</p><div className="objective"><span aria-hidden="true">◎</span><p><strong>Your goal</strong>Run a forecast, then change a feature or a line of Python and notice what moves.</p></div></section>
-          <p className="data-note">Simulated shop · intentionally simple data.<br />Demand means mugs wanted, not sales fulfilled.</p>
-        </aside>
+        <ShopScene />
         <div className="analyst-column">
-          <div className="practice-panel" hidden={!visible("explore") && !visible("forecast")}><DemandHistory predictions={predictions} /></div>
+          <div className={`forecast-workspace ${mission.state.active && mission.step === 'explore' ? 'exploring' : ''}`} hidden={!visible("explore") && !visible("forecast")}>
+          <div className="practice-panel"><DemandHistory predictions={predictions} runNumber={submitted?.number} forecastMessage={predictions
+            ? dirty ? 'Code changed. These are still the last completed estimates; rerun to update them.' : 'These estimates came from your completed Python run. Select a day to inspect its inputs.'
+            : python.phase === 'running' ? 'Python is running. Predictions appear only when this run completes.'
+            : python.phase === 'error' || python.phase === 'unavailable' ? 'This attempt has no forecast. Inspect the error in your workbench; previous successful runs remain saved below.'
+            : 'Run your Python to turn known inputs into a forecast. Future demand is still unknown.'} /></div>
           <div className="practice-panel" hidden={!visible("forecast")}>
           <section className="experiment-card" aria-labelledby="experiment-title">
             <div className="section-heading"><div><span className="eyebrow">YOUR WORKBENCH</span><h2 id="experiment-title">Build a little intuition.</h2></div><span className="step-count">01 → 02 → 03</span></div>
@@ -119,6 +114,7 @@ function Workspace() {
           </section>
           <ExperimentHistory area="forecast" records={history.records} />
           {mission.state.active && python.result && submitted && <button className="run-button practice-inspect" onClick={() => mission.dispatch({ type: 'inspect', evidence: { step: 'forecast', record: { ...submitted, ...python.result! } } })}>I inspected forecast run {submitted.number}</button>}
+          </div>
           </div>
           <div className="practice-panel" hidden={!visible("stock")}><StockingDesk forecast={previous} /></div>
           <div className="practice-panel" hidden={!visible("evaluate")} >{evaluationOpen || reached("evaluate") ? <EvaluationLab /> : <section className="results-card"><h2>How good is your model?</h2><p>Compare against a simple baseline on later historical days.</p><button className="run-button" onClick={() => setEvaluationOpen(true)}>Open evaluation lab</button></section>}

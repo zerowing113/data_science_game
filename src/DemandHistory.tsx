@@ -2,6 +2,7 @@ import { useSavedState } from './journey';
 import { useEffect, useRef } from 'react';
 import { scenario } from './scenario';
 import { ForecastChart } from './ForecastChart';
+import { ForecastWeek } from './ForecastWeek';
 import { useMission } from './mission';
 import './demand-history.css';
 
@@ -12,7 +13,7 @@ const explanations = {
   demand: 'Observed demand is the target: mugs customers wanted, only observed after that day. Future demand is unknown when forecasting and cannot be an input feature. Example: customers wanted 40 mugs on 2026-09-04.',
 };
 
-export function DemandHistory({ predictions }: { predictions?: number[] }) {
+export function DemandHistory({ predictions, runNumber, forecastMessage }: { predictions?: number[]; runNumber?: number; forecastMessage: string }) {
   const mission = useMission();
   const [inspectedDay, setInspectedDay] = useSavedState<number>('history.inspectedDay');
   const [inspectedColumn, setInspectedColumn] = useSavedState<string>('history.inspectedColumn');
@@ -38,6 +39,12 @@ export function DemandHistory({ predictions }: { predictions?: number[] }) {
     if (next === 'future') setViewedFuture(true);
     setSort('date-asc');
   }
+  function selectDay(day: number) {
+    const next = day < 28 ? 'history' : 'future';
+    if (next !== tab) switchTab(next);
+    setSelectedDay(day);
+    setChartSelection((selection) => selection + 1);
+  }
   useEffect(() => {
     if (selectedDay !== undefined && selectedDay < 28) { setInspectedDay(selectedDay); mission.observe('explore'); }
   }, [selectedDay, mission.observe]);
@@ -46,12 +53,9 @@ export function DemandHistory({ predictions }: { predictions?: number[] }) {
     <p className="simulation-note"><strong>Simulated store data</strong> for a realistic shop scenario. This first mission uses deliberately simple, noise-free demand to make the trend and promotion patterns easy to see.</p>
     <p>Each row represents one product on one day: The Everyday Mug. Demand means mugs customers wanted, not fulfilled sales.</p>
     <p className="explore-hint">{mission.state.active ? 'Inspect a historical day and a column, then open Upcoming week before confirming your inspection.' : 'Inspect a day and a column before modeling. Exploring is optional; you can run a forecast whenever you are ready.'}</p>
-    <ForecastChart predictions={predictions} selectedDay={selectedDay} onSelectDay={(day) => {
-      const next = day < 28 ? 'history' : 'future';
-      if (next !== tab) switchTab(next);
-      setSelectedDay(day);
-      setChartSelection((selection) => selection + 1);
-    }} />
+    <div className="data-timeline"><div><strong>Historical observations · 28 days</strong><span>Aug 31 – Sep 27, 2026 · mugs / day</span></div><div><strong>Future inputs · 7 days</strong><span>Sep 28 – Oct 04</span></div></div>
+    <ForecastChart predictions={predictions} selectedDay={selectedDay} onSelectDay={selectDay} />
+    <ForecastWeek predictions={predictions} runNumber={runNumber} message={forecastMessage} selectedDay={selectedDay} onSelectDay={selectDay} />
     <div className="history-controls">
       <div role="tablist" aria-label="Scenario records">{(['history', 'future'] as const).map((value) => <button key={value} id={`${value}-tab`} role="tab" aria-selected={tab === value} aria-controls="scenario-panel" tabIndex={tab === value ? 0 : -1} onClick={() => switchTab(value)} onKeyDown={(event) => {
         if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {

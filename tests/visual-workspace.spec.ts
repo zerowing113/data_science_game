@@ -1,0 +1,40 @@
+import { expect, test } from '@playwright/test';
+
+test.use({ actionTimeout: 15_000 });
+
+test('the visual week follows completed Python, never a selector or a failed attempt, and survives reopening', async ({ page }) => {
+  test.setTimeout(300_000);
+  await page.goto('/');
+  const week = page.getByRole('region', { name: 'Upcoming week forecast', exact: true });
+  await expect(week).toContainText('No current forecast');
+  await expect(week).toContainText('Actual demand: unknown on all seven days');
+  await page.getByRole('radio', { name: /Trend \+ promotions/ }).check();
+  const editor = page.getByLabel('Python code', { exact: true });
+  const code = 'predictions = [10, 20, 30, 40, 50, 60, 70]';
+  await editor.fill(code);
+  await page.getByLabel('Your prediction').fill('My custom Python sets the forecast, not the feature selector.');
+  const run = page.getByRole('button', { name: 'Run forecast', exact: true });
+  await expect(run).toBeEnabled({ timeout: 60_000 });
+  await run.click();
+  await expect(week).toContainText('Completed forecast · run 1', { timeout: 60_000 });
+  const friday = week.getByRole('button', { name: 'Inspect future inputs for 2026-10-02: promotion planned, 50.0 mugs predicted, actual demand unknown', exact: true });
+  await friday.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('row', { name: '2026-10-02 32 1 Unknown', exact: true })).toBeVisible();
+  await expect(friday).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(week).toContainText('Completed forecast · run 1', { timeout: 60_000 });
+  await expect(editor).toHaveValue(code);
+  await expect(friday).toHaveAttribute('aria-pressed', 'true');
+  await editor.fill('raise ValueError("Try again")');
+  await expect(week).toContainText('Code changed');
+  await run.click();
+  await expect(week).toContainText('No current forecast');
+  await expect(page.getByRole('alert')).toContainText('Try again');
+  await expect(week.getByRole('button', { name: /mugs predicted/ })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('alert')).toContainText('Try again', { timeout: 60_000 });
+  await expect(week).toContainText('No current forecast');
+  await page.getByText('Previous successful forecast · run 1', { exact: true }).click();
+  await expect(page.getByRole('table', { name: 'Previous forecast · run 1', exact: true })).toContainText('50.0');
+});
