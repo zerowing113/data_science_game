@@ -6,6 +6,7 @@ import { scenario } from './scenario';
 import { usePython } from './use-python';
 import { useMission, usePracticeAttempt } from './mission';
 import { timingRepairStarter } from './leakage';
+import { FeatureTimingTimeline, TimingEvidence } from './FeatureTimingVisual';
 import './leakage.css';
 
 export function LeakageLesson() {
@@ -46,6 +47,7 @@ export function LeakageLesson() {
     <span className="eyebrow">A PERFECT PRACTICE SCORE?</span><h2 id="leakage-title">Investigate feature timing</h2>
     <p>This simulated export adds a closing report that looks closely related to demand. Try it on later historical days, then see whether the same Python can forecast the upcoming week.</p>
     <p>Historical training: <strong>2026-08-31 – 2026-09-20</strong>. Evaluation: <strong>2026-09-21 – 2026-09-27</strong>. The baseline repeats the last training demand, 60 mugs, on those same seven dates.</p>
+    <FeatureTimingTimeline />
     <details className="timing-inspection"><summary>Inspect feature timing</summary>
       <p><strong>day</strong>: date trend known before the forecast. <strong>promotion</strong>: planned promotion known before the forecast.</p>
       <p><strong>closing_requested_units</strong>: Only after the shop closes. This fictional report counts all customer requests, including unfulfilled demand. In this deterministic fixture it equals observed demand; it is not fulfilled sales. Historical exports have it, but upcoming inputs omit it entirely.</p>
@@ -67,6 +69,10 @@ export function LeakageLesson() {
     {runs.length === 0 && <p>No timing experiments yet.</p>}
     {runs.map((record) => <article className="timing-record" key={record.number} aria-label={`Timing experiment ${record.number}`}>
       <h3>Timing experiment {record.number}</h3>
+      <TimingEvidence record={record} status={submitted?.number !== record.number || python.phase !== 'complete'
+        ? `Saved experiment ${record.number}, not the current attempt. Its original results remain available.`
+        : code !== record.code ? 'Draft changed. This evidence still belongs to the saved Python; run again to check the new draft.'
+        : `Completed experiment ${record.number}. Historical scores and the forecast-time check come from this saved execution.`} />
       <p><strong>Historical model MAE: {record.modelMae.toFixed(2)} mugs/day</strong><br /><strong>Baseline MAE: {record.baselineMae.toFixed(2)} mugs/day</strong></p>
       <p>Training August 31–September 20; evaluation September 21–27, 2026. Lower MAE is better.</p>
       <p className={`timing-validity ${record.leakageCheck?.validity}`}><strong>Validity: {record.leakageCheck?.validity ?? 'unverified'}</strong>. {record.leakageCheck?.reason}</p>
