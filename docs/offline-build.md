@@ -10,12 +10,12 @@ Use Node 22, Python 3.11 or newer, and the pinned Go 1.27.1 toolchain. From the 
 npm ci
 npm run prepare:python
 npm run build
-python scripts/package-offline.py
+python scripts/package-offline.py --target windows-x64
 ```
 
 The preparation step requires internet on the builder and verifies Python wheel checksums. Runtime loading uses only embedded local files. Packaging verifies the full pandas/scikit-learn dependency closure and compares core runtime assets to the installed pinned Pyodide package. A missing or corrupted dependency fails packaging.
 
-Use `--target windows-x64`, `--target macos-intel`, or `--target macos-apple-silicon` to build one archive. Use `--go /path/to/go` for a portable toolchain. All three can be cross-compiled from Windows, but cross-compilation alone does not verify native launch. The script writes ZIP archives and SHA-256 files under ignored `release/`; each archive includes instructions, dependency notices, and a manifest with build revision, package versions, and file checksums. Fixed ZIP timestamps and pinned toolchains keep the packaging procedure repeatable. Build from a clean committed checkout for release artifacts; working-tree builds are marked accordingly.
+Use `--target windows-x64`, `--target macos-intel`, or `--target macos-apple-silicon` to build one archive. Use `--go /path/to/go` for a portable toolchain. Build Mac targets on macOS: packaging now seals and verifies the complete app bundle with codesign. Windows builders must select --target windows-x64. Ad-hoc bundle sealing provides integrity only; it does not provide Developer ID trust or notarization. The script writes ZIP archives and SHA-256 files under ignored `release/`; each archive includes instructions, dependency notices, and a manifest with build revision, package versions, and file checksums. Fixed ZIP timestamps and pinned toolchains keep the packaging procedure repeatable. Build from a clean committed checkout for release artifacts; working-tree builds are marked accordingly.
 
 ## Verify the actual artifact
 
@@ -53,3 +53,9 @@ For a replacement release, stop the prior launcher, download/extract the new ver
 Record ordinary OS launch, security prompts, and physically disconnected checks using the [native-device acceptance record](offline-acceptance.md). Automated CI and the package-replacement check do not fill in that human/device evidence.
 
 Preview 3 is built from clean application revision `fb42250d0536`. All three native targets passed 51 packaged browser tests plus launcher, offline smoke, and full process-restart checks. The exact Windows CI executable also passed compatible replacement from published preview 2. See the [preview 3 verification record](reviews/offline-preview-3.md) for CI, checksums, publication evidence, and remaining human acceptance.
+
+## Preview 3 Mac launch defect
+
+The owner reported a damaged-app dialog on a MacBook Air M4. Native assessment of the published Apple Silicon ZIP reproduced `code has no resources but signature indicates they must be present`. The Go linker ad-hoc signature did not seal the enclosing app bundle. Packaging now signs the completed bundle before manifest generation, and native CI verifies its extracted signature. The public preview 3 asset is unchanged and still affected.
+
+Bundle sealing alone does not satisfy Gatekeeper: the repaired bundle passes integrity verification but remains rejected by distribution assessment. Developer ID signing, notarization, a stapled ticket for offline use, and a fresh normal-download device test remain required before claiming this launch blocker resolved.

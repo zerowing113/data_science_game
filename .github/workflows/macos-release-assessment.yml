@@ -8,6 +8,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@v4
       - name: Download and extract published Apple Silicon package
         run: |
           curl --fail --location --output game.zip https://github.com/zerowing113/data_science_game/releases/download/offline-v0.1.0-preview.3/little-goods-0.1.0-macos-apple-silicon.zip
@@ -42,8 +43,11 @@ jobs:
             echo 'Expected preview 3 malformed bundle signature was not reproduced'
             exit 1
           fi
-          codesign --force --sign - "$app"
+          python3 scripts/macos_bundle.py "$app"
           codesign --verify --deep --strict --verbose=4 "$app"
+          ditto -c -k --keepParent "$app" repaired.zip
+          ditto -x -k repaired.zip repaired
+          codesign --verify --deep --strict --verbose=4 "repaired/Start Game.app"
           set +e
           spctl --assess --type execute --verbose=4 "$app" > diagnostics/after-bundle-signing.txt 2>&1
           result=$?

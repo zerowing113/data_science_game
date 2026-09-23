@@ -41,6 +41,10 @@ jobs:
           launcher=$(python scripts/extract-offline.py "$archive" .cache/extracted)
           echo "LAUNCHER_PATH=$launcher" >> "$GITHUB_ENV"
       - run: npx playwright install chromium
+      - name: Verify extracted Mac app signature
+        if: runner.os == 'macOS'
+        shell: bash
+        run: codesign --verify --deep --strict --verbose=4 "$(dirname "$(dirname "$LAUNCHER_PATH")")/.."
       - run: node --test tests/launcher.test.mjs
       - run: npx playwright test -c playwright.offline.config.ts
       - run: npm run test:restart

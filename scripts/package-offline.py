@@ -7,8 +7,10 @@ from pathlib import Path
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
+from macos_bundle import seal_bundle
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = {'windows-x64': ('windows', 'amd64'), 'macos-intel': ('darwin', 'amd64'), 'macos-apple-silicon': ('darwin', 'arm64')}
@@ -21,6 +23,9 @@ def main():
     parser.add_argument('--target', choices=TARGETS, action='append')
     parser.add_argument('--go', default='go')
     args = parser.parse_args()
+    targets = args.target or TARGETS
+    if sys.platform != 'darwin' and any(TARGETS[target][0] == 'darwin' for target in targets):
+        raise SystemExit('Mac packages require a native macOS builder to seal the app bundle. On Windows use --target windows-x64.')
     go = str(Path(args.go).resolve()) if Path(args.go).exists() else args.go
     version = json.loads((ROOT / 'package.json').read_text())['version']
     revision = subprocess.check_output(['git', 'rev-parse', '--short=12', 'HEAD'], cwd=ROOT, text=True).strip()
@@ -54,7 +59,7 @@ def main():
     output.mkdir(exist_ok=True)
     cache = ROOT / '.cache'
     cache.mkdir(exist_ok=True)
-    for target in args.target or TARGETS:
+    for target in targets:
         goos, goarch = TARGETS[target]
         with tempfile.TemporaryDirectory(prefix='offline-', dir=cache) as temporary:
             staging = Path(temporary)
@@ -82,6 +87,10 @@ def main():
             subprocess.run([go, 'build', '-trimpath', '-buildvcs=false', '-ldflags', flags, '-o', str(executable), '.'],
                            cwd=source, env={**os.environ, 'GOOS': goos, 'GOARCH': goarch, 'CGO_ENABLED': '0'}, check=True)
             executable.chmod(0o755)
+            if goos == 'darwin':
+                # The Go linker signature covers its executable, not the enclosing app.
+                # Seal the finished bundle before hashing and archiving its resources.
+                seal_bundle(contents.parent)
             shutil.copy2(ROOT / 'docs/offline-player-guide.md', bundle / 'READ ME.md')
             notices = bundle / 'THIRD-PARTY'
             notices.mkdir()
