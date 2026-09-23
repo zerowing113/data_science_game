@@ -1,0 +1,40 @@
+name: Assess downloaded Mac release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  assess:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Download and extract published Apple Silicon package
+        run: |
+          curl --fail --location --output game.zip https://github.com/zerowing113/data_science_game/releases/download/offline-v0.1.0-preview.3/little-goods-0.1.0-macos-apple-silicon.zip
+          curl --fail --location --output game.zip.sha256 https://github.com/zerowing113/data_science_game/releases/download/offline-v0.1.0-preview.3/little-goods-0.1.0-macos-apple-silicon.zip.sha256
+          expected=$(awk '{print $1}' game.zip.sha256)
+          echo "$expected  game.zip" | shasum -a 256 -c -
+          ditto -x -k game.zip extracted
+      - name: Capture native bundle and distribution assessment
+        shell: bash
+        run: |
+          app="$PWD/extracted/Little Goods-macos-apple-silicon/Start Game.app"
+          mkdir diagnostics
+          set +e
+          {
+            sw_vers
+            uname -m
+            file "$app/Contents/MacOS/StartGame"
+            plutil -lint "$app/Contents/Info.plist"
+            codesign --display --verbose=4 "$app"; echo "signature_display=$?"
+            codesign --verify --deep --strict --verbose=4 "$app"; echo "bundle_integrity=$?"
+            codesign --verify --strict --verbose=4 "$app/Contents/MacOS/StartGame"; echo "binary_integrity=$?"
+            spctl --assess --type execute --verbose=4 "$app"; echo "gatekeeper=$?"
+            xcrun stapler validate "$app"; echo "stapled_ticket=$?"
+            syspolicy_check distribution "$app"; echo "distribution=$?"
+          } > diagnostics/assessment.txt 2>&1
+          cat diagnostics/assessment.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-release-assessment
+          path: diagnostics/
