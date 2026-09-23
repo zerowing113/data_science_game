@@ -34,6 +34,21 @@ jobs:
             syspolicy_check distribution "$app"; echo "distribution=$?"
           } > diagnostics/assessment.txt 2>&1
           cat diagnostics/assessment.txt
+      - name: Test complete bundle signing against the malformed published signature
+        shell: bash
+        run: |
+          app="$PWD/extracted/Little Goods-macos-apple-silicon/Start Game.app"
+          if codesign --verify --deep --strict "$app"; then
+            echo 'Expected preview 3 malformed bundle signature was not reproduced'
+            exit 1
+          fi
+          codesign --force --sign - "$app"
+          codesign --verify --deep --strict --verbose=4 "$app"
+          set +e
+          spctl --assess --type execute --verbose=4 "$app" > diagnostics/after-bundle-signing.txt 2>&1
+          result=$?
+          echo "gatekeeper=$result" >> diagnostics/after-bundle-signing.txt
+          cat diagnostics/after-bundle-signing.txt
       - uses: actions/upload-artifact@v4
         with:
           name: macos-release-assessment
