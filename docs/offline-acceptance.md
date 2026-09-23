@@ -6,9 +6,9 @@ Use the actual published ZIP for each target. CI verifies native executables hea
 
 | Target | Release / archive SHA-256 | OS / browser version | Normal launch | Disconnected first launch + full mission | Restart + compatible replacement |
 |---|---|---|---|---|---|
-| Windows 11 x64 | Pending | Pending | Not observed | Not observed | Not observed on a manual device |
-| macOS 14+ Intel | Pending | Pending | Not observed | Not observed | Not observed on a manual device |
-| macOS 14+ Apple Silicon | Pending | Pending | Not observed | Not observed | Not observed on a manual device |
+| Windows 11 x64 | Pending | Windows 11; build and browser/version pending | Not observed | Not observed | Not observed on a manual device |
+| macOS 14+ Intel | Pending | No device access | Not observed | Not observed | Not observed on a manual device |
+| macOS 14+ Apple Silicon | Pending | Owner reports latest macOS; exact version and browser pending | Not observed | Not observed | Not observed on a manual device |
 
 For each observation record the date, observer, exact build/checksum, OS version, processor, browser/version, and whether the browser profile was fresh. Record exact security or startup messages and the actions required to proceed. A blocked launch is a finding, not a pass. Do not disable OS protections to obtain a passing result.
 
@@ -35,10 +35,14 @@ The separate learner playtest, timing, and understanding assessment belong to #1
 - Intel Mac: `fed439e09d67b357065a077f8707a51f17e01589a728b025c31a09b7b4692059`
 - Apple Silicon Mac: `00c8a23a69be8455405e384f4b2fbdf7b5c1f9f58225d8f9e14b633995cba210`
 
-The owner has Windows and Apple Silicon devices available to test; Intel Mac device access is unconfirmed. For preview 2, the owner reported that the game worked on Windows using Firefox with Wi-Fi on and no security warning. OS/browser versions, normal extraction/launch details, disconnected first launch/full mission, and stop/reopen results were not supplied. This limited observation does not complete the device criteria or establish full Firefox support. The pending device table above remains unfilled intentionally. The automated Windows replacement check passed from the prior save-capable verification build to the CI-built preview 2 executable, but that is not an Explorer launch or physical-disconnection observation.
+The owner has Windows and Apple Silicon devices available to test; the owner has confirmed no Intel Mac access. For preview 2, the owner reported that the game worked on Windows using Firefox with Wi-Fi on and no security warning. OS/browser versions, normal extraction/launch details, disconnected first launch/full mission, and stop/reopen results were not supplied. This limited observation does not complete the device criteria or establish full Firefox support. The device table records available machines but leaves actual test outcomes pending. The automated Windows replacement check passed from the prior save-capable verification build to the CI-built preview 2 executable, but that is not an Explorer launch or physical-disconnection observation.
 
 Use the [learner observation guide](learner-playtest.md) for the separate #11 session. Record the exact release under test; observations of preview 2 do not establish acceptance of the later visual upgrade.
 
 ## Visual upgrade package reference
 
 Use [preview 3](https://github.com/zerowing113/data_science_game/releases/tag/offline-v0.1.0-preview.3) for new observations. It contains visual tickets #13 through #18, built from clean revision `fb42250d0536`. All three native targets passed 51 packaged browser tests and launcher/offline/restart checks. The [preview 3 verification record](reviews/offline-preview-3.md) contains exact archive hashes and automated compatibility evidence. The device table remains pending; earlier preview 2 feedback does not fill it for this release.
+
+## Preview 3 test setup supplied by the owner
+
+Available machines: Windows 11 and an Apple Silicon Mac described as running the latest macOS. The exact Windows build and macOS version have not been supplied. Browser options are Firefox or Chrome; the chosen browser and version remain pending. Use Chrome first for the existing acceptance target, and record Firefox separately if tested. No Intel Mac is available to the owner, so its manual acceptance remains outstanding despite successful native CI. These setup details are not new launch, offline, resume, or learner observations.
