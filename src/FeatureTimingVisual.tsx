@@ -7,11 +7,11 @@ const featureTiming = [
   { name: 'closing_requested_units', late: true, label: 'Closing request report', explanation: 'Only after the shop closes. This report counts all requests, including unfulfilled demand. Historical exports contain it, but upcoming inputs omit it. A past answer is not an available forecast input.' },
 ];
 
-export function FeatureTimingTimeline() {
+export function FeatureTimingTimeline({ forecastPeriod = 'September 28–October 4' }: { forecastPeriod?: string }) {
   const [selected, setSelected] = useState(featureTiming[0]);
   return <section className="feature-timeline" aria-label="Feature availability timeline">
     <span className="eyebrow">WHAT CAN THE SHOP KNOW IN TIME?</span><h3>Put each input on the clock</h3>
-    <p>Forecast September 28–October 4 before those days happen. Select a feature to inspect when its information arrives.</p>
+    <p>Forecast {forecastPeriod} before those days happen. Select a feature to inspect when its information arrives.</p>
     <div className="timing-axis"><strong>Known before forecasting</strong><strong>Forecast cutoff</strong><strong>After each day closes</strong></div>
     {featureTiming.map((feature) => {
       const button = <button className={`timing-feature ${feature.late ? 'late' : 'known'}`} aria-label={`Inspect ${feature.name} availability`} aria-pressed={selected.name === feature.name} onClick={() => setSelected(feature)}><code>{feature.name}</code><span>{feature.label}</span><b>{feature.late ? '× Too late for this forecast' : '✓ Available at cutoff'}</b></button>;

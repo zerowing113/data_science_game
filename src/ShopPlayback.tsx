@@ -42,7 +42,7 @@ function DayScene({ row, phase, moving }: { row: StockingDecision['rows'][number
 }
 
 /** Playback is transient presentation state. Only StockingDesk commits decisions. */
-export function ShopPlayback({ decision, autoPlay, active }: { decision: StockingDecision; autoPlay: boolean; active: boolean }) {
+export function ShopPlayback({ decision, autoPlay, active }: { decision: Pick<StockingDecision, 'number' | 'rows' | 'totals' | 'replay'> & { experiment: { number: number } }; autoPlay: boolean; active: boolean }) {
   const end = decision.rows.length * phases.length;
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [step, setStep] = useState(autoPlay && !reducedMotion ? 0 : end);

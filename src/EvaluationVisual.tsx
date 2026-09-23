@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { EvaluationRecord } from './EvaluationLab';
-import { EvaluationTimeline } from './EvaluationTimeline';
 
-export function EvaluationVisual({ record, status }: { record: EvaluationRecord; status: string }) {
+export function EvaluationVisual({ record, status, timeline }: { record: Pick<EvaluationRecord, 'number' | 'rows' | 'modelMae' | 'baselineMae'>; status: string; timeline: ReactNode }) {
   const [selected, setSelected] = useState(0);
   const rows = record.rows;
   const row = rows[selected];
@@ -18,15 +17,15 @@ export function EvaluationVisual({ record, status }: { record: EvaluationRecord;
   return <section className="evaluation-visual" aria-label={`Visual evaluation run ${record.number}`}>
     <div className="evaluation-visual-heading"><div><span className="eyebrow">FROM DAILY ERRORS TO A SCORE</span><h3>See where the forecast misses</h3></div><strong>Saved run {record.number}</strong></div>
     <p className="visual-run-status">{status}</p>
-    <EvaluationTimeline trainingDays={record.trainingDays} label={`Saved evaluation split for run ${record.number}`} />
+    {timeline}
     <div className="evaluation-visual-grid">
       <div>
         <div className="evaluation-chart-legend"><span>● Observed demand</span><span>◇ Model predictions</span><span>▪ Baseline · dashed line</span></div>
         <div className="evaluation-chart-scroll" role="region" aria-label={`Scrollable comparison charts for run ${record.number}`} tabIndex={0}>
           <svg viewBox="0 0 830 400" role="img" aria-label={`Run ${record.number}: demand and absolute errors on the same ${rows.length} evaluation dates, in mugs per day. Use the date buttons below for exact values.`}>
+            <rect x={x(selected) - 20} y="36" width="40" height="330" rx="8" fill="#f4e6be" />
             <text x="16" y="22" className="plot-title">Demand · mugs / day</text>
             <text x="16" y="221" className="plot-title">Absolute error · mugs / day · lower is better</text>
-            <rect x={x(selected) - 20} y="36" width="40" height="330" rx="8" fill="#f4e6be" />
             {[0, .5, 1].map((fraction) => <g key={fraction}>
               <line x1="52" x2="792" y1={demandY(maximum * fraction)} y2={demandY(maximum * fraction)} stroke="#dce3d7" />
               <text x="44" y={demandY(maximum * fraction) + 4} textAnchor="end">{(maximum * fraction).toFixed(0)}</text>

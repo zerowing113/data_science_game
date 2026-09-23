@@ -67,7 +67,7 @@ export function EvaluationLab() {
     {runs.length === 0 && <p>No successful comparisons yet.</p>}
     {runs.map((record) => <article className="evaluation-record" key={record.number} aria-label={`Evaluation run ${record.number}`}>
       <h3>Evaluation run {record.number}</h3><SplitDates trainingDays={record.trainingDays} />
-      <EvaluationVisual record={record} status={submitted?.number !== record.number || python.phase !== 'complete'
+      <EvaluationVisual record={record} timeline={<EvaluationTimeline trainingDays={record.trainingDays} label={`Saved evaluation split for run ${record.number}`} />} status={submitted?.number !== record.number || python.phase !== 'complete'
         ? `Saved run ${record.number}, not the current attempt. Its original results remain available.`
         : record.code !== code || record.trainingDays !== trainingDays
           ? 'Draft changed. This chart still belongs to the saved code and split; run again for a new comparison.'

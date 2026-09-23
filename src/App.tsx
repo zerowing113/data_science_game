@@ -64,7 +64,7 @@ function Workspace() {
     <main id="main">
       <div className="page-heading"><div><span className="eyebrow">YOU'RE THE SHOP'S NEW ANALYST</span><h1>Your first forecast</h1><p>A small shop. A growing demand. What will next week look like?</p></div><div className="mission-tag"><span>MISSION 01</span><strong>Predict daily demand</strong></div></div>
       <div hidden={finalOpen}><MissionGuide onOpenFinal={openFinal} /></div>
-      {finalStarted && <div hidden={!finalOpen}><FinalChallenge onBack={() => setFinalOpen(false)} /></div>}
+      {finalStarted && <div hidden={!finalOpen}><FinalChallenge active={finalOpen} onBack={() => setFinalOpen(false)} /></div>}
       <div className="workspace" hidden={finalOpen}>
         <ShopScene />
         <div className="analyst-column">

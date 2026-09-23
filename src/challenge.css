@@ -12,4 +12,40 @@
 .challenge-table input { min-width: 88px; }
 .challenge-recap { border-top: 2px solid #719b7b; margin-top: 28px; padding-top: 18px; }
 .challenge-reflection textarea { min-height: 90px; }
+.final-stages { display: flex; gap: 12px; margin: 24px 0; }
+.final-stages a { display: flex; align-items: center; gap: 10px; flex: 1; padding: 16px; border: 1px solid #c5cfba; border-radius: 14px; color: #244b3b; text-decoration: none; background: #f2eee1; }
+.final-stages a[aria-current="step"] { border: 2px solid #35694f; background: #e4eddf; font-weight: 700; }
+.final-stages span { display: grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%; background: #35694f; color: white; }
+.final-learning-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.final-input-panel, .final-code-panel { min-width: 0; }
+.final-code-panel { padding: 22px; border-radius: 16px; background: #f4f0e4; border: 1px solid #ddd0b5; }
+.final-code-panel h3, .final-week h3, .final-stock-panel h3 { font: 700 25px Georgia, serif; margin: 8px 0 16px; }
+.final-week { padding: 20px; background: #fffdf6; border: 1px solid #ddd0b5; border-radius: 16px; margin: 18px 0; }
+.final-week-days { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; }
+.final-week-days li { min-width: 0; display: grid; gap: 6px; text-align: center; padding: 10px 5px; border: 1px solid #d4c5a5; border-radius: 10px; background: #f2ecd9; }
+.final-week-days time, .final-week-days small { font-size: 11px; overflow-wrap: anywhere; }
+.final-week-days span { font-size: 12px; }
+.final-week-days strong { font-size: 22px; }
+.final-prediction-bar { display: flex; align-items: end; justify-content: center; height: 65px; border-bottom: 1px solid #a7b6a0; color: #746a54; font-size: 30px; }
+.final-prediction-bar i { width: 28px; display: block; background: #779b7b; border-radius: 6px 6px 0 0; }
+.final-stock-panel { padding: 24px; border-radius: 18px; background: #f4e8d3; border: 1px solid #d8bb91; margin-top: 24px; }
+.final-stock-panel .forecast-table { background: #fffdf6; }
+.final-challenge .split-calendar { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.challenge-recap .split-calendar { grid-template-columns: repeat(28, minmax(0, 1fr)); }
+.challenge-reflection { background: #eaf0e4; border-radius: 16px; padding: 22px; margin-top: 24px; }
+.saved-final-reflections > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.saved-final-reflections p { background: #eaf0e4; border-radius: 14px; padding: 18px; overflow-wrap: anywhere; }
+.saved-final-reflections strong { display: block; margin-bottom: 8px; }
+.final-challenge .evaluation-visual, .final-challenge .shop-playback { margin-bottom: 24px; }
+@media (max-width: 1000px) {
+  .final-learning-workspace { grid-template-columns: 1fr; }
+  .saved-final-reflections > div { grid-template-columns: 1fr; }
+  .challenge-recap .split-calendar { grid-template-columns: repeat(14, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .final-stages { flex-direction: column; }
+  .final-week, .final-code-panel, .final-stock-panel, .challenge-reflection { padding: 14px; }
+  .final-week-days { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .challenge-recap .split-calendar { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
 @media (max-width: 600px) { .final-challenge { padding: 16px; } .final-challenge .section-heading, .final-challenge .run-bar { flex-wrap: wrap; gap: 12px; } }
