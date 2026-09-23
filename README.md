@@ -38,9 +38,9 @@ Previously reached workspaces remain mounted, preserving editors, attempts, Pyth
 
 ## Download and play
 
-Download [offline preview 2](https://github.com/zerowing113/data_science_game/releases/tag/offline-v0.1.0-preview.2) for Windows x64, Intel Mac, or Apple Silicon Mac. Extract the ZIP and open **Start Game**; no developer tools or Python installation are needed. The repository and downloads are public.
+Download [offline preview 3](https://github.com/zerowing113/data_science_game/releases/tag/offline-v0.1.0-preview.3) for Windows x64, Intel Mac, or Apple Silicon Mac. Extract the ZIP and open **Start Game**; no developer tools or Python installation are needed. The repository and downloads are public.
 
-Preview 2 includes automatic save/resume in the same browser profile. All 42 packaged browser tests, launcher checks, offline Python smoke tests, and full process-restart checks passed on all three native targets. These are unsigned test builds; normal downloaded-app security prompts and physically disconnected-device acceptance remain tracked in [#10](https://github.com/zerowing113/data_science_game/issues/10). See the [player guide](docs/offline-player-guide.md) before testing. Preview 1 predates saves and cannot provide a previous saved journey.
+Preview 3 includes the visual learning workspace, shop playback, final recap, and automatic save/resume in the same browser profile. All 51 packaged browser tests, launcher checks, offline Python smoke tests, and full process-restart checks passed on all three native targets. These are unsigned test builds; normal downloaded-app security prompts and physically disconnected-device acceptance remain tracked in [#10](https://github.com/zerowing113/data_science_game/issues/10). See the [player guide](docs/offline-player-guide.md), [verification record](docs/reviews/offline-preview-3.md), and [learner observation guide](docs/learner-playtest.md) before testing. Preview 1 predates saves and cannot provide a previous saved journey.
 
 ## Start locally
 
